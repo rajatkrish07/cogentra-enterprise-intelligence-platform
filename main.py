@@ -10,6 +10,7 @@ class UserAccount:
     self.__email = email
     self.chats = []
 
+
   def to_dict(self):
       return{
           "username": self.username,
@@ -66,6 +67,20 @@ class UserAccount:
   @property
   def profile(self):
     return f"Username: {self.username}\nEmail: {self.__email}"
+
+  def save(self, filename):
+      with open(filename, "w") as my_file:
+          json.dump(
+              self.to_dict(),
+              my_file,
+              indent=4
+          )
+
+  @classmethod
+  def load(cls, filename):
+      with open(filename, "r") as my_file:
+          my_dict = json.load(my_file)
+      return cls.from_dict(my_dict)
 
 # Manages state of the chat like attributes and features
 class Chat:
@@ -141,7 +156,6 @@ class Message:
 
         return cls(timestamp, text)
 
-
     def __str__(self):
         return f"{self.timestamp}: {self.text}"
 
@@ -183,16 +197,11 @@ user.find_chat("JAVA Bootcamp").edit_message("Crack Java SDE roles in 6 months",
 print(user.find_chat("JAVA Bootcamp").display_messages())
 
 # Dumping python dictionary to json
-with open("user_data.json", "w") as user_json_file:
-    json.dump(user.to_dict(), user_json_file, indent=4)
+user.save("user_data.json")
 
-with open("user_data.json", "r") as user_json_file:
-    user_data = json.load(user_json_file)
+# Loading class back from json
+user = UserAccount.load("user_data.json")
 
-print(user_data)
-print(type(user_data))
-print(type(user_data["chats"]))
-print(type(user_data["chats"][0]))
+# Returns Class 
+print(user)
 
-loaded_user = user.from_dict(user_data)
-print(loaded_user.find_chat("JAVA Bootcamp").display_messages())
