@@ -3,6 +3,7 @@ import os
 import json
 from datetime import datetime
 import logging
+from pydantic import BaseModel, Field
 
 logging.basicConfig(
     level = logging.INFO,
@@ -28,39 +29,21 @@ class ChatRenameError(Exception):
     pass
 
 # Manages all the operations like creating user and managing chats
-class UserAccount:
+class UserAccount(BaseModel):
 
-  def __init__(self, username: str, email: str) -> None:
-    self.username = username
-    self.__email = email
-    self.chats = []
-
-  def to_dict(self) -> dict:
-      return{
-          "username": self.username,
-          "email": self.__email,
-          "chats": [chat_obj.to_dict() for chat_obj in self.chats]
-      }
-
-  @classmethod
-  def from_dict(cls, data: dict) -> UserAccount:
-      username = data["username"]
-      email = data["email"]
-      user = cls(username, email)
-
-      for chat in data["chats"]:
-          user.chats.append(Chat.from_dict(chat))
-      return user
+  username: str
+  email: str
+  chats: list[Chat] = Field(default_factory=list)
 
   # Renaming or setting new email
   @property
   def email(self) -> str:
-    return self.__email
+    return self.email
 
   @email.setter
   def email(self, new_email:str) -> None:
-    if self.__email != new_email:
-      self.__email = new_email
+    if self.email != new_email:
+      self.email = new_email
       logger.info(f"Email address changed successfully to {new_email}")
 
     else:
@@ -98,12 +81,12 @@ class UserAccount:
   # Displays user profile details (username and email)
   @property
   def profile(self) -> str:
-    return f"Username: {self.username}\nEmail: {self.__email}"
+    return f"Username: {self.username}\nEmail: {self.email}"
 
   def save(self, filename:str) -> None:
       with open(filename, "w") as my_file:
           json.dump(
-              self.to_dict(),
+              self.model_dump(),
               my_file,
               indent=4
           )
@@ -115,96 +98,59 @@ class UserAccount:
           my_dict = json.load(my_file)
 
       logger.info(f"User data loaded successfully from {filename}")
-      return cls.from_dict(my_dict)
+      return cls.model_validate(my_dict)
 
 # Manages state of the chat like attributes and features
-class Chat:
-    def __init__(self, title:str) -> None:
-        self.title = title
-        self.messages = []
-
-    def to_dict(self) -> dict:
-        return{
-            "title": self.title,
-            "messages": [msg.to_dict() for msg in self.messages]
-        }
-
-    @classmethod
-    def from_dict(cls, data:dict) -> Chat:
-        chat = cls(data["title"])
-        for msg in data["messages"]:
-            chat.messages.append(Message.from_dict(msg))
-        return chat
+class Chat(BaseModel):
+  
+  title: str
+  messages: list[Message] = Field(default_factory=list)
 
     # Display messages
-    def display_messages(self) -> list:
-        return self.messages.copy()
+  def display_messages(self) -> list:
+      return self.messages.copy()
 
     # Adds new messages
-    def add_message(self, text:str) -> None:
-        timestamp = datetime.now()
-        msg = Message(timestamp, text)
-        self.messages.append(msg)
-        logger.info(f"Message added to chat '{self.title}'.")
+  def add_message(self, text:str) -> None:
+      timestamp = datetime.now()
+      msg = Message(timestamp, text)
+      self.messages.append(msg)
+      logger.info(f"Message added to chat '{self.title}'.")
 
     # Edit existing messages
-    def edit_message(self, text:str, new_text:str) -> None:
-        for msg in self.messages:
-            if msg.text == text:
-                msg.text = new_text
-                logger.info(f"Message edited successfully to '{self.title}'.")
-                return
+  def edit_message(self, text:str, new_text:str) -> None:
+      for msg in self.messages:
+          if msg.text == text:
+              msg.text = new_text
+              logger.info(f"Message edited successfully to '{self.title}'.")
+              return
 
-        raise MessageNotFoundError(f"Message '{text}' not found in chat '{self.title}'.")
+      raise MessageNotFoundError(f"Message '{text}' not found in chat '{self.title}'.")
 
     # Rename chats
-    def rename_chat(self, new_title:str) -> None:
-        if self.title != new_title:
-            self.title = new_title
-            logger.info(f"Chat renamed to '{self.title}'.")
+  def rename_chat(self, new_title:str) -> None:
+      if self.title != new_title:
+          self.title = new_title
+          logger.info(f"Chat renamed to '{self.title}'.")
 
-        else:
-            raise ChatRenameError(f"Chat '{new_title}' already exists.")
+      else:
+          raise ChatRenameError(f"Chat '{new_title}' already exists.")
 
     # Deletes messages
-    def delete_message(self, text:str) -> None:
-        for msgs in self.messages:
-            if msgs.text == text:
-                self.messages.remove(msgs)
-                logger.info(f"Message deleted successfully to {self.title}")
-                return
+  def delete_message(self, text:str) -> None:
+      for msgs in self.messages:
+          if msgs.text == text:
+              self.messages.remove(msgs)
+              logger.info(f"Message deleted successfully to {self.title}")
+              return
 
-        raise MessageNotFoundError(f"Message '{text}' not found in chat '{self.title}'.")
+      raise MessageNotFoundError(f"Message '{text}' not found in chat '{self.title}'.")
 
-    # Dunder methods to instruct python to display in proper format instead of memory address
-    def __str__(self) -> str:
-        return self.title
+class Message(BaseModel):
+  timestamp: datetime
+  text: str
 
-    def __repr__(self) -> str:
-        return self.title
 
-class Message:
-    def __init__(self, timestamp:datetime, text:str) -> None:
-        self.timestamp = timestamp
-        self.text = text
-
-    def to_dict(self) -> dict:
-        return{
-            "timestamp": self.timestamp.isoformat(),
-            "text": self.text
-        }
-    @classmethod
-    def from_dict(cls, data: dict) -> Message:
-        timestamp = datetime.fromisoformat(data["timestamp"])
-        text = data["text"]
-
-        return cls(timestamp, text)
-
-    def __str__(self) -> str:
-        return f"{self.timestamp}: {self.text}"
-
-    def __repr__(self) -> str:
-        return f"{self.timestamp}: {self.text}"
 
 user = UserAccount("rajatkr_07", "rajatkrishnan2002@gmail.com")
 
@@ -227,7 +173,8 @@ chat.add_message("Welcome, Let's learn Java!")
 chat.add_message("Crack Java SDE roles in 6 months")
 chat.add_message("Are you excited??!!!")
 print(type(chat.messages[0].timestamp))
-print(chat.messages[0].to_dict())
+print(type(chat.messages[0].model_dump()["timestamp"]))
+print(chat.messages[0].model_dump())
 print(chat.display_messages())
 
 # Renaming Chats
@@ -247,3 +194,12 @@ user = UserAccount.load("user_data.json")
 # Returns Class
 print(user)
 
+data = {
+    "timestamp": "2026-07-05T10:30:00",
+    "text": "Learning Pydantic"
+}
+
+msg = Message.model_validate(data)
+
+print(msg)
+print(type(msg.timestamp))
