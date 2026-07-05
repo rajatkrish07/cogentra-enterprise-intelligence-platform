@@ -1,4 +1,4 @@
-# Agentic AI Backend
+# Cogentra - Enterprise Intelligence Platform
 
 A production-oriented backend engineering project documenting the journey from Python fundamentals to production-grade AI backend development.
 
