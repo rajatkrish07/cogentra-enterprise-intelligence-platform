@@ -312,5 +312,4 @@ user.save("user_data.json")
 # Loading class back from json
 user = UserAccount.load("user_data.json")
 
-user1 = user.admin_response()
-print(user1)
+
