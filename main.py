@@ -5,16 +5,19 @@ import logging
 from pydantic import BaseModel, Field, field_validator, EmailStr, ConfigDict,computed_field
 from fastapi import FastAPI
 
+# app -> FastAPI Application object
 app = FastAPI()
 
+# Welcome page
 @app.get("/")
-def welcome():
-    return f"Welcome to Cogentra"
+def welcome_user():
+    return {"message": "Welcome User!"}
 
+# App's health check
 @app.get("/health")
-def health():
+def health_check():
     return {
-        "status": "healthy",
+        "status": "ok",
         "service": "cogentra"
     }
 
@@ -182,26 +185,16 @@ class UserAccount(BaseModel):
       logger.info(f"User data loaded successfully from {filename}.")
       return cls.model_validate(my_dict)
 
-  # Profile response
-  def profile_response(self) -> dict:
-      return self.model_dump(
-          include = {"username","full_name"}
-      )
+# Exposes fields relevant for user only
+class UserResponse(BaseModel):
+    username: str
+    full_name: str
 
-  def admin_response(self) -> dict:
-      return self.model_dump(
-          include = {"username", "email", "first_name", "last_name", "chat_count"}
-      )
-
-@app.post("/users")
-def create_user(user: UserAccount):
-    print(type(user))
-    print(user)
-
-    return {
-          "message": "User created successfully.",
-          "user": user
-    }
+# Exposes fields relevant for admin only
+class AdminUserResponse(BaseModel):
+    username: str
+    email: EmailStr
+    chat_count: int
 
 # Manages state of the chat like attributes and features
 class Chat(BaseModel):
@@ -288,12 +281,29 @@ class Message(BaseModel):
       value = value.strip()
       return value
 
+## Exposes fields relevant for AI agents only
+class AIUserResponse(BaseModel):
+    username: str
+    chat_count: int
+
+@app.post("/admin/users", response_model=AdminUserResponse)
+def admin_display(user: UserAccount):
+    return user
+
+@app.post("/user", response_model= UserResponse)
+def user_display(user: UserAccount):
+    return user
+
+@app.post("/AI/users", response_model=AIUserResponse)
+def ai_display(user: UserAccount):
+    return user
+
 # Object created for UserAccount class
 user = UserAccount(
     username="rajatkr_07",
     email="rajatkrishnan2002@gmail.com",
-    first_name="Rajat",
-    last_name="Krishnan"
+    firstName="Rajat",
+    lastName="Krishnan"
 )
 
 print(user.email)
