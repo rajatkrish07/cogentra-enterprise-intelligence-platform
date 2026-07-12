@@ -1,29 +1,15 @@
-from models import *
-from schemas import *
-from fastapi import FastAPI, Query
+from models import UserAccount
+from schemas import UserResponse, AdminUserResponse, AIResponse
+from fastapi import FastAPI, Query, Path, Header
 
 # app -> FastAPI Application object
 app = FastAPI()
-
-# Exposes fields relevant for admin only
-class UserResponse(BaseModel):
-    username: str
-    full_name: str
-
-class AdminUserResponse(BaseModel):
-    username: str
-    email: EmailStr
-    chat_count: int
-
-class AIResponse(BaseModel):
-    username: str
-    chat_count: int
 
 @app.post("/admin/users", response_model=AdminUserResponse)
 def admin_display(user: UserAccount):
     return user
 
-@app.post("/user", response_model=UserResponse)
+@app.post("/users", response_model=UserResponse)
 def user_display(user: UserAccount):
     return user
 
@@ -44,39 +30,49 @@ def health_check():
         "service": "cogentra"
     }
 
+# Path Parameter
+
 # Fetching user info by id
-@app.get("/users/id/{user_id}")
-def get_user(user_id: int):
+
+@app.get("/users/{user_id}")
+def get_user(
+        user_id: int = Path(
+            ...,
+            ge=1,
+            title="User ID",
+            description="Unique identifier of the user",
+            examples=[1]
+        )
+):
     return {
-        "requested user": user_id
+        "requested_user": user_id
     }
 
 # Fetching user info by name
-@app.get("/users/name/{name}")
-def get_user_by_name(name: str):
-    return {
-        "requested user's name": name
-    }
-
-# Finding details based on name using query parameter
 @app.get("/users")
-def search_user(name: str = "Guest"):
+def search_users(
+        name: str | None= Query(
+            None,
+            title="User Name",
+            min_length=2,
+            max_length=50,
+            description="Search users by username",
+        )):
     return {
-        "search_name": name
+        "searched_name": name
     }
 
-@app.get("/users/search")
-def search_user(name: str =Query(
-    ...,
-    min_length=3,
-    max_length=50,
-    description="Search users by username",
-    example="Rajat Krishnan"
-)):
-    return{
-        "search_name": name
+# Header
+@app.get("/profile")
+def profile(
+        authorization: str = Header(
+            ...,
+            description="JWT Bearer Token"
+        )
+):
+    return {
+        "token": authorization
     }
-
 
 
 
