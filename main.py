@@ -1,6 +1,9 @@
+from click import prompt
+
 from models import UserAccount
-from schemas import UserResponse, AdminUserResponse, AIResponse
+from schemas import UserResponse, AdminUserResponse, AIUserResponse ,AIResponse, GenerateResponseRequest
 from fastapi import FastAPI, Query, Path, Header
+from starlette import status
 
 # app -> FastAPI Application object
 app = FastAPI()
@@ -13,7 +16,7 @@ def admin_display(user: UserAccount):
 def user_display(user: UserAccount):
     return user
 
-@app.post("/ai/users", response_model=AIResponse)
+@app.post("/ai/users", response_model=AIUserResponse)
 def ai_display(user: UserAccount):
     return user
 
@@ -75,4 +78,21 @@ def profile(
     }
 
 
+# Endpoint and Logic
 
+@app.post("/chats/{chat_id}/generate", response_model=AIResponse, status_code=status.HTTP_201_CREATED)
+def create_ai_response(
+    request: GenerateResponseRequest,
+    chat_id: int = Path(
+            ...,
+            ge=1,
+            title="Chat ID",
+            description="Unique identifier of the chat"
+        ),
+):
+    return {
+        "message_id": 201,
+        "chat_id": chat_id,
+        "user_prompt": request.prompt,
+        "ai_response": "Dependency Injection allows..."
+    }
