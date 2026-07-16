@@ -1,4 +1,5 @@
 from pydantic import BaseModel, EmailStr, Field
+from models import UserAccount
 
 # Exposes fields relevant for admin only
 class UserResponse(BaseModel):
@@ -25,6 +26,11 @@ class GenerateResponseRequest(BaseModel):
         examples=["Explain FastAPI Dependency Injection."]
     )
 
+
+class CurrentUser(BaseModel):
+    username: str
+    email: EmailStr
+
 # Response Model
 
 class AIResponse(BaseModel):
@@ -33,4 +39,8 @@ class AIResponse(BaseModel):
     user_prompt: str
     ai_response: str
     version: str
+    username: str
+    email: EmailStr
+
+
 

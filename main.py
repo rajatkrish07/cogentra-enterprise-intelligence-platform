@@ -1,6 +1,6 @@
-from dependencies import get_api_version
+from dependencies import get_api_version, get_curr_user
 from models import UserAccount
-from schemas import UserResponse, AdminUserResponse, AIUserResponse ,AIResponse, GenerateResponseRequest
+from schemas import UserResponse, AdminUserResponse, AIUserResponse ,AIResponse, GenerateResponseRequest, CurrentUser
 from fastapi import FastAPI, Query, Path, Header, Depends
 from starlette import status
 
@@ -76,7 +76,6 @@ def profile(
         "token": authorization
     }
 
-
 # Endpoint and Logic
 
 @app.post("/chats/{chat_id}/generate", response_model=AIResponse, status_code=status.HTTP_201_CREATED)
@@ -89,11 +88,16 @@ def create_ai_response(
             title="Chat ID",
             description="Unique identifier of the chat"
         ),
+    curr_user: CurrentUser = Depends(get_curr_user)
 ):
     return {
         "message_id": 201,
         "chat_id": chat_id,
         "user_prompt": request.prompt,
         "ai_response": "Dependency Injection allows...",
-        "version": version
+        "version": version,
+        "username": curr_user.username,
+        "email": curr_user.email
     }
+
+
