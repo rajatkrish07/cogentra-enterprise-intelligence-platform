@@ -1,5 +1,5 @@
-from dependencies import get_api_version, get_curr_user, get_chat
-from models import UserAccount, Chat
+from dependencies import get_api_version, get_curr_user, get_chat, get_message
+from models import UserAccount, Chat, Message
 from schemas import UserResponse, AdminUserResponse, AIUserResponse ,AIResponse, GenerateResponseRequest, CurrentUser
 from fastapi import FastAPI, Query, Path, Header, Depends
 from starlette import status
@@ -78,17 +78,18 @@ def profile(
 
 # Endpoint and Logic
 
-@app.post("/chats/{chat_id}/generate", response_model=AIResponse, status_code=status.HTTP_201_CREATED)
+@app.post("/chats/{chat_id}/messages/{message_id}/generate", response_model=AIResponse, status_code=status.HTTP_201_CREATED)
 def create_ai_response(
     request: GenerateResponseRequest,
     version: str = Depends(get_api_version),
+    curr_user: CurrentUser = Depends(get_curr_user),
     chat: Chat = Depends(get_chat),
-    curr_user: CurrentUser = Depends(get_curr_user)
-
+    message: Message = Depends(get_message)
 ):
+
     return {
-        "message_id": 201,
         "chat_id": chat.id,
+        "message_id": message.id,
         "user_prompt": request.prompt,
         "ai_response": "Dependency Injection allows...",
         "version": version,
