@@ -1,13 +1,14 @@
 import time
 import uuid
+from starlette import status
+from datetime import datetime
 from dependencies import get_api_version, get_message
 from models import UserAccount, Message, AIResponse
 from schemas import UserResponse, AdminUserResponse, AIUserResponse ,GenerateAIResponse, RegenerateAIResponse, ResponseHistorySchema
 from exceptions import UserNotFoundError, ChatNotFoundError, MessageNotFoundError, AIResponseNotFoundError
 from fastapi import FastAPI, Query, Path, Header, Depends, Request, HTTPException
 from fastapi.responses import JSONResponse
-from starlette import status
-from datetime import datetime
+from logger import logger
 
 # app -> FastAPI Application object
 app = FastAPI()
@@ -21,9 +22,8 @@ async def log_requests(
 
     # Start time
     start_time = time.perf_counter()
-
     request_id = str(uuid.uuid4())
-
+    request.state.request_id = request_id
     print(f"{request_id} --> {request.method} {request.url.path}")
 
     try:
@@ -41,6 +41,27 @@ async def log_requests(
         process_time = time.perf_counter() - start_time
         print(f"{request_id} <-- Exception {process_time:.4f}s")
         raise
+
+# Global Exception Handler (Exception -> HTTP Response)
+
+@app.exception_handler(Exception)
+async def global_exception_handler(
+    request: Request,
+    exc: Exception
+):
+
+    logger.exception(f"{exc}")
+    return JSONResponse(
+        status_code = status.HTTP_500_INTERNAL_SERVER_ERROR,
+        content={
+            "success": False,
+            "error":{
+                "code": "INTERNAL SERVER ERROR",
+                "message": "An unexpected error occurred.",
+            },
+            "request_id": request.state.request_id
+        }
+    )
 
 # Global Exception Handler (Domain Exception -> HTTP Response)
 
@@ -89,6 +110,7 @@ async def handle_ai_response_not_found(
     request: Request,
     exc: AIResponseNotFoundError
 ):
+    logger
     return JSONResponse(
         status_code=status.HTTP_404_NOT_FOUND,
         content={
@@ -199,7 +221,6 @@ def regenerate_ai_response(
         "response": new_response
     }
 
-
 # Displays all the responses generated
 @app.get("/chats/{chat_id}/messages/{message_id}/responses", response_model=ResponseHistorySchema, status_code=status.HTTP_200_OK)
 def get_response_history(
@@ -215,7 +236,6 @@ def get_response_history(
 @app.get("/error")
 async def error():
     raise Exception("Something went wrong!")
-
 
 @app.get("/not-found")
 async def not_found():
