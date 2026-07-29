@@ -1,17 +1,27 @@
 import time
 import uuid
 from starlette import status
-from datetime import datetime
-from dependencies import get_api_version, get_message
-from models import UserAccount, Message, AIResponse
-from schemas import UserResponse, AdminUserResponse, AIUserResponse ,GenerateAIResponse, RegenerateAIResponse, ResponseHistorySchema
 from exceptions import UserNotFoundError, ChatNotFoundError, MessageNotFoundError, AIResponseNotFoundError
-from fastapi import FastAPI, Query, Path, Header, Depends, Request, HTTPException
+from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 from logger import logger
+from routers.users import user_router
+from routers.messages import message_router
+from routers.ai_user import ai_router
+from routers.admin import admin_router
+from routers.debug import debug_router
+from routers.health import health_router
 
 # app -> FastAPI Application object
 app = FastAPI()
+
+# Registering the routers with the app
+app.include_router(user_router)
+app.include_router(message_router)
+app.include_router(ai_router)
+app.include_router(admin_router)
+app.include_router(debug_router)
+app.include_router(health_router)
 
 # Middleware - HTTP
 @app.middleware("http")
@@ -144,126 +154,3 @@ async def handle_ai_response_not_found(
         error_code="AI_RESPONSE_NOT_FOUND",
         message=str(exc)
     )
-
-# Different User Displays
-@app.get("/admin/users", response_model=AdminUserResponse)
-def admin_display(user: UserAccount):
-    return user
-
-@app.get("/users", response_model=UserResponse)
-def user_display(user: UserAccount):
-    return user
-
-@app.get("/ai/users", response_model=AIUserResponse)
-def ai_display(user: UserAccount):
-    return user
-
-# Welcome page
-@app.get("/")
-def welcome_user():
-    return {"message": "Welcome User!"}
-
-# App's health check
-@app.get("/health")
-def health_check():
-    return {
-        "status": "ok",
-        "service": "cogentra"
-    }
-
-# Path Parameter
-
-# Fetching user info by id
-
-@app.get("/users/{user_id}")
-def get_user(
-        user_id: int = Path(
-            ...,
-            ge=1,
-            title="User ID",
-            description="Unique identifier of the user",
-            examples=[1]
-        )
-):
-    return {
-        "requested_user": user_id
-    }
-
-# Fetching user info by name
-@app.get("/users")
-def search_users(
-        name: str | None= Query(
-            None,
-            title="User Name",
-            min_length=2,
-            max_length=50,
-            description="Search users by username",
-        )):
-    return {
-        "searched_name": name
-    }
-
-# Header param
-@app.get("/profile")
-def profile(
-        authorization: str = Header(
-            ...,
-            description="JWT Bearer Token"
-        )
-):
-    return {
-        "token": authorization
-    }
-
-# Generates the message
-@app.post("/chats/{chat_id}/messages/{message_id}/generate", response_model=GenerateAIResponse, status_code=status.HTTP_201_CREATED)
-def create_ai_response(
-    version: str = Depends(get_api_version),
-    message: Message = Depends(get_message)
-):
-
-    return {
-        "chat_id": message.chat_id,
-        "message_id": message.id,
-        "user_prompt": message.text,
-        "ai_response": "Dependency Injection allows...",
-        "version": version
-    }
-
-# Regenerates the response and adds it to a list for persistence
-@app.post("/chats/{chat_id}/messages/{message_id}/regenerate",response_model=RegenerateAIResponse, status_code=status.HTTP_201_CREATED)
-def regenerate_ai_response(
-        message: Message = Depends(get_message)
-):
-    new_response = AIResponse(
-        id="resp_009",
-        text="This is a regenerated AI response.",
-        created_at=datetime.now()
-    )
-
-    message.responses.append(new_response)
-
-    return{
-        "message": "AI response regenerated successfully.",
-        "response": new_response
-    }
-
-# Displays all the responses generated
-@app.get("/chats/{chat_id}/messages/{message_id}/responses", response_model=ResponseHistorySchema, status_code=status.HTTP_200_OK)
-def get_response_history(
-        message: Message = Depends(get_message)
-):
-
-    return{
-        "message": "Responses retrieved successfully.",
-        "responses": message.responses
-    }
-
-# Exception Handling Test
-@app.get("/error")
-async def error():
-    raise Exception("Something went wrong!")
-
-@app.get("/not-found")
-async def not_found():
-    raise HTTPException(status_code=404, detail="User not found")
