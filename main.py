@@ -42,6 +42,27 @@ async def log_requests(
         print(f"{request_id} <-- Exception {process_time:.4f}s")
         raise
 
+# Exception Handler Helper Function
+
+def error_response(
+        request: Request,
+        status_code: int,
+        error_code: str,
+        message: str
+) -> JSONResponse:
+
+    return JSONResponse(
+        status_code=status_code,
+        content={
+            "success": False,
+            "error": {
+                "code": error_code,
+                "message": message
+            },
+            "request_id": request.state.request_id
+        }
+    )
+
 # Global Exception Handler (Exception -> HTTP Response)
 
 @app.exception_handler(Exception)
@@ -50,17 +71,13 @@ async def global_exception_handler(
     exc: Exception
 ):
 
-    logger.exception(f"{exc}")
-    return JSONResponse(
+    logger.exception(f"Unhandled Exception: {str(exc)}")
+
+    return error_response(
+        request = request,
         status_code = status.HTTP_500_INTERNAL_SERVER_ERROR,
-        content={
-            "success": False,
-            "error":{
-                "code": "INTERNAL SERVER ERROR",
-                "message": str(exc)
-            },
-            "request_id": request.state.request_id
-        }
+        error_code="INTERNAL_SERVER_ERROR",
+        message="An unexpected error occurred."
     )
 
 # Global Exception Handler (Domain Exception -> HTTP Response)
@@ -74,16 +91,11 @@ async def handle_user_not_found(
 
     logger.warning(str(exc))
 
-    return JSONResponse(
+    return error_response(
+        request = request,
         status_code=status.HTTP_404_NOT_FOUND,
-        content={
-            "success": False,
-            "error": {
-                "code": "USER_NOT_FOUND",
-                "message": str(exc)
-            },
-            "request_id": request.state.request_id
-        }
+        error_code="USER_NOT_FOUND",
+        message=str(exc)
     )
 
 # For No Chats Found
@@ -95,16 +107,11 @@ async def handle_chat_not_found(
 
     logger.warning(str(exc))
 
-    return JSONResponse(
+    return error_response(
+        request = request,
         status_code=status.HTTP_404_NOT_FOUND,
-        content={
-            "success": False,
-            "error": {
-                "code": "CHAT_NOT_FOUND",
-                "message": str(exc)
-            },
-            "request_id": request.state.request_id
-        }
+        error_code="CHAT_NOT_FOUND",
+        message=str(exc)
     )
 
 # For No Message Found
@@ -116,17 +123,13 @@ async def handle_message_not_found(
 
     logger.warning(str(exc))
 
-    return JSONResponse(
+    return error_response(
+        request=request,
         status_code=status.HTTP_404_NOT_FOUND,
-        content={
-            "success": False,
-            "error": {
-                "code": "MESSAGE_NOT_FOUND",
-                "message": str(exc)
-            },
-            "request_id": request.state.request_id
-        }
+        error_code="MESSAGE_NOT_FOUND",
+        message=str(exc)
     )
+
 # For No AI Response Found
 @app.exception_handler(AIResponseNotFoundError)
 async def handle_ai_response_not_found(
@@ -135,16 +138,11 @@ async def handle_ai_response_not_found(
 ):
     logger.warning(str(exc))
 
-    return JSONResponse(
+    return error_response(
+        request=request,
         status_code=status.HTTP_404_NOT_FOUND,
-        content={
-            "success": False,
-            "error": {
-                "code": "AI_RESPONSE_NOT_FOUND",
-                "message": str(exc)
-            },
-            "request_id": request.state.request_id
-        }
+        error_code="AI_RESPONSE_NOT_FOUND",
+        message=str(exc)
     )
 
 # Different User Displays
