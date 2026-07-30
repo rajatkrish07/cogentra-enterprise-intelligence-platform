@@ -11,9 +11,19 @@ from routers.ai_user import ai_router
 from routers.admin import admin_router
 from routers.debug import debug_router
 from routers.health import health_router
+from contextlib import asynccontextmanager
+
+# App Startup-Shutdown
+@asynccontextmanager
+async def startup_shutdown_manager(app: FastAPI):
+    logger.info(f"Cogentra backend starting...")
+    yield
+    logger.info(f"Cogentra backend shutting down...")
 
 # app -> FastAPI Application object
-app = FastAPI()
+app = FastAPI(
+    lifespan = startup_shutdown_manager
+)
 
 # Registering the routers with the app
 app.include_router(user_router)
