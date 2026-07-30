@@ -1,6 +1,9 @@
-from fastapi import APIRouter, Path, Query, Header
+from fastapi import APIRouter, Path, Query, Header, BackgroundTasks
+from pydantic import EmailStr
+
 from models import UserAccount
-from schemas import UserResponse
+from schemas import UserResponse, UserRegistrationRequest
+from logger import logger
 
 user_router = APIRouter(
     prefix="/users",
@@ -51,4 +54,24 @@ def profile(
 ):
     return {
         "token": authorization
+    }
+
+# Sends Welcome Email
+def send_welcome_email(email: EmailStr):
+    logger.info(f"Sending welcome email to {email}")
+
+@user_router.post("/register")
+async def register_user(
+        user: UserRegistrationRequest,
+        background_tasks: BackgroundTasks
+):
+
+    logger.info(f"Sending welcome email to {user.email}")
+
+    background_tasks.add_task(
+        task = send_welcome_email,
+        email = user.email
+    )
+    return {
+        "message": "User successfully registered"
     }

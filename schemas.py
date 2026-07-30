@@ -56,3 +56,8 @@ class ResponseHistorySchema(BaseModel):
     responses: list[AIResponseSchema]
 
 
+class UserRegistrationRequest(BaseModel):
+    username: str
+    email: EmailStr
+
+
