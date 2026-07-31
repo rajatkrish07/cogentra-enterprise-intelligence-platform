@@ -1,6 +1,5 @@
 from fastapi import APIRouter, Path, Query, Header, BackgroundTasks
 from pydantic import EmailStr
-
 from models import UserAccount
 from schemas import UserResponse, UserRegistrationRequest
 from logger import logger

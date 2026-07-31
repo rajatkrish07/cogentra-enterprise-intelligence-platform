@@ -6,6 +6,9 @@ from schemas import GenerateAIResponse, RegenerateAIResponse, ResponseHistorySch
 from models import AIResponse
 from starlette import status
 
+from services import ai_service
+from services.ai_service import AIService
+
 message_router = APIRouter(
     prefix="/chats/{chat_id}/messages/{message_id}",
     tags=["Messages"]
@@ -26,22 +29,19 @@ def create_ai_response(
         "version": version
     }
 
-# Regenerates the response and adds it to a list for persistenc
+# Regenerates the response and adds it to a list for persistence
+
+ai_service = AIService()
+
 @message_router.post("/regenerate",response_model=RegenerateAIResponse, status_code=status.HTTP_201_CREATED)
-def regenerate_ai_response(
+def regenerate_response(
         message: Message = Depends(get_message)
 ):
-    new_response = AIResponse(
-        id="resp_009",
-        text="This is a regenerated AI response.",
-        created_at=datetime.now()
-    )
+    new_response = ai_service.regenerate_response(message)
 
-    message.responses.append(new_response)
-
-    return{
+    return {
         "message": "AI response regenerated successfully.",
-        "response": new_response
+        "response": new_response,
     }
 
 # Displays all the responses generated
@@ -54,3 +54,4 @@ def get_response_history(
         "message": "Responses retrieved successfully.",
         "responses": message.responses
     }
+
