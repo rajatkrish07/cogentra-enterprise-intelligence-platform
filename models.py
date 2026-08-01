@@ -111,9 +111,9 @@ class UserAccount(BaseModel):
         logger.info(f"Created new chat: {chat_obj.title}.")
 
     # Find chats
-    def find_chat(self, title: str) -> Chat | None:
+    def find_chat(self, chat_id: str) -> Chat | None:
         for my_chat in self.chats:
-            if my_chat.title == title:
+            if my_chat.id == chat_id:
                 return my_chat
         return None
 
