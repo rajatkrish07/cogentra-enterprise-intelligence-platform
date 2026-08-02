@@ -1,9 +1,10 @@
+import uuid
 from models import UserAccount, Chat
 from logger import logger
 from exceptions import DuplicateChatError, ChatNotFoundError, NoEmailChangeError
 from pydantic import EmailStr
 
-class UserService():
+class UserService:
 
     # Find chats
     def find_chat(self, user: UserAccount, chat_id: str) -> Chat | None:
@@ -24,7 +25,11 @@ class UserService():
         if self.find_chat_by_title(user, title):
             raise DuplicateChatError(f"Chat '{title}' already exists.")
 
-        chat = Chat(title=title)
+        chat = Chat(
+            id = str(uuid.uuid4()),
+            title=title
+        )
+
         user.chats.append(chat)
         logger.info(f"Created new chat: {chat.title}.")
         return chat
@@ -40,7 +45,7 @@ class UserService():
         return chat
 
     # Updates user email
-    def update_email(self, user: UserAccount, new_email: EmailStr) -> None:
+    def update_email(self, user: UserAccount, new_email: EmailStr)->None:
         if user.email == new_email:
             raise NoEmailChangeError
 

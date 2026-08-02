@@ -75,6 +75,19 @@ class CreateChatResponse(BaseModel):
     chat: ChatResponse
 
 
+class DeleteChatRequest(BaseModel):
+    id: str
+
+
 class DeleteChatResponse(BaseModel):
     message: str
     chat: ChatResponse
+
+
+class UpdateEmailRequest(BaseModel):
+    new_email: EmailStr
+
+
+class UpdateEmailResponse(BaseModel):
+    message: str
+    email: EmailStr

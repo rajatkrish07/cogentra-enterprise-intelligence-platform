@@ -4,9 +4,6 @@ from datetime import datetime
 from pydantic import BaseModel, Field, field_validator, EmailStr, ConfigDict, computed_field
 from logger import logger
 from exceptions import (
-    DuplicateChatError,
-    DuplicateEmailError,
-    ChatNotFoundError,
     MessageNotFoundError,
     ChatRenameError
 )
@@ -81,55 +78,6 @@ class UserAccount(BaseModel):
     @property
     def full_name(self) -> str:
         return f"{self.first_name} {self.last_name}"
-
-    # Calculates number of chats
-    @computed_field
-    @property
-    def chat_count(self) -> int:
-        return len(self.chats)
-
-    # # Updates user email
-    # def update_email(self, new_email: EmailStr):
-    #     if self.email != new_email:
-    #         self.email = new_email
-    #     else:
-    #         raise DuplicateEmailError(f"Email '{new_email}' already exists.")
-    #     logger.info(f"Email updated successfully to {new_email}.")
-    #
-    # # Display chats
-    #
-    # def display_chats(self) -> list:
-    #     return self.chats.copy()
-    #
-    # # Creates new chat object
-    # def create_chat(self, title: str) -> None:
-    #     if self.find_chat(title):
-    #         raise DuplicateChatError(f"Chat '{title}' already exists.")
-    #
-    #     chat_obj = Chat(title=title)
-    #     self.chats.append(chat_obj)
-    #     logger.info(f"Created new chat: {chat_obj.title}.")
-    #
-    # # Find chats
-    # def find_chat(self, chat_id: str) -> Chat | None:
-    #     for my_chat in self.chats:
-    #         if my_chat.id == chat_id:
-    #             return my_chat
-    #     return None
-    #
-    # # Delete chats
-    # def delete_chat(self, title: str) -> None:
-    #     chat = self.find_chat(title)
-    #     if chat:
-    #         self.chats.remove(chat)
-    #         logger.info(f"Chat '{title}' deleted successfully.")
-    #     else:
-    #         raise ChatNotFoundError(f"Chat '{title}' not found.")
-
-    # Displays user profile details (username and email)
-    @property
-    def profile(self) -> str:
-        return f"Username: {self.username}\nEmail: {self.email}"
 
     # Saving Pydantic model instance to python dictionary
     def save(self, filename: str) -> None:

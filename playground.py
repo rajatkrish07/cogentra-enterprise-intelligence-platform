@@ -40,7 +40,7 @@ print(chat.display_messages())
 user.find_chat("AI Masterclass").rename_chat("Advanced AI Masterclass")
 print(user.display_chats())
 
-# # Edit Message
+# Edit Message
 user.find_chat("JAVA Bootcamp").edit_message("Crack Java SDE roles in 6 months", "Crack Java SDE roles in 8 months")
 print(user.find_chat("JAVA Bootcamp").display_messages())
 
