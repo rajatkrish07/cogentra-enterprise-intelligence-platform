@@ -1,5 +1,6 @@
-# Domain Exceptions
+from pydantic import EmailStr
 
+# Domain Exceptions
 class UserNotFoundError(Exception):
     def __init__(self, user_id: str):
         self.user_id = user_id
@@ -25,6 +26,12 @@ class DuplicateChatError(Exception):
 
 class DuplicateEmailError(Exception):
     pass
+
+class NoEmailChangeError(Exception):
+    def __init__(self, email: EmailStr):
+        self.email = email
+        super().__init__(f"New email can't be same as the current email.")
+
 
 class ChatRenameError(Exception):
     pass

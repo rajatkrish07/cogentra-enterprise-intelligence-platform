@@ -61,3 +61,20 @@ class UserRegistrationRequest(BaseModel):
     email: EmailStr
 
 
+class CreateChatRequest(BaseModel):
+    title: str
+
+
+class ChatResponse(BaseModel):
+    id: str
+    title: str
+
+
+class CreateChatResponse(BaseModel):
+    message: str
+    chat: ChatResponse
+
+
+class DeleteChatResponse(BaseModel):
+    message: str
+    chat: ChatResponse

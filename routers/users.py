@@ -1,76 +1,59 @@
-from fastapi import APIRouter, Path, Query, Header, BackgroundTasks
-from pydantic import EmailStr
+from starlette import status
+from schemas import CreateChatRequest, CreateChatResponse, ChatResponse, DeleteChatResponse
+from fastapi import APIRouter, Path
+from fastapi.params import Depends
+from dependencies import get_curr_user
 from models import UserAccount
-from schemas import UserResponse, UserRegistrationRequest
-from logger import logger
+from schemas import CreateChatRequest
+from services import user_service
 
 user_router = APIRouter(
     prefix="/users",
     tags=["users"]
 )
 
-# Displays User/Client related fields only
-@user_router.get("/", response_model=UserResponse)
-def user_display(user: UserAccount):
-    return user
+@user_router.post("/{user_id}/chats", response_model=CreateChatResponse, status_code=status.HTTP_201_CREATED)
 
-# Fetching user info by id
-@user_router.get("/{user_id}")
-def get_user(
-        user_id: int = Path(
-            ...,
-            ge=1,
-            title="User ID",
-            description="Unique identifier of the user",
-            examples=[1]
-        )
-):
-    return {
-        "requested_user": user_id
-    }
+def create_chat(
+        request: CreateChatRequest,
+        user: UserAccount = Depends(get_curr_user)
 
-# Fetching user info by name
-@user_router.get("/search")
-def search_users(
-        name: str | None= Query(
-            None,
-            title="User Name",
-            min_length=2,
-            max_length=50,
-            description="Search users by username",
-        )):
-    return {
-        "searched_name": name
-    }
+) -> CreateChatResponse:
 
-# Header param
-@user_router.get("/profile")
-def profile(
-        authorization: str = Header(
-            ...,
-            description="JWT Bearer Token"
-        )
-):
-    return {
-        "token": authorization
-    }
-
-# Sends Welcome Email
-def send_welcome_email(email: EmailStr):
-    logger.info(f"Sending welcome email to {email}")
-
-@user_router.post("/register")
-async def register_user(
-        user: UserRegistrationRequest,
-        background_tasks: BackgroundTasks
-):
-
-    logger.info(f"Sending welcome email to {user.email}")
-
-    background_tasks.add_task(
-        task = send_welcome_email,
-        email = user.email
+    chat = user_service.create_chat(
+        user = user,
+        title = request.title
     )
-    return {
-        "message": "User successfully registered"
-    }
+
+    return CreateChatResponse(
+        message= "Chat created successfully!",
+        chat= ChatResponse(
+            id=chat.id,
+            title=chat.title,
+        )
+)
+
+@user_router.delete("/{user_id}/chats/{chat_id}", response_model=DeleteChatResponse, status_code=status.HTTP_200_OK)
+
+def delete_chat(
+        chat_id: str = Path(
+            ...,
+            description="The id of the chat to delete",
+        ),
+        user: UserAccount = Depends(get_curr_user)
+) -> DeleteChatResponse:
+
+    chat = user_service.delete_chat(
+        user = user,
+        chat_id = chat_id
+    )
+
+    return DeleteChatResponse(
+        message= "Chat deleted successfully!",
+        chat= ChatResponse(
+            id=chat.id,
+            title=chat.title,
+        )
+    )
+
+
