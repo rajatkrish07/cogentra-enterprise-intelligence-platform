@@ -91,3 +91,31 @@ class UpdateEmailRequest(BaseModel):
 class UpdateEmailResponse(BaseModel):
     message: str
     email: EmailStr
+
+
+class AddMessageRequest(BaseModel):
+    text: str
+
+
+class AddMsgResponse(BaseModel):
+    chat_id: str
+    text: str
+
+
+class AddMessageResponse(BaseModel):
+    message: str
+    detail: AddMsgResponse
+
+
+class EditMessageRequest(BaseModel):
+    text: str
+
+
+class EditMsgResponse(BaseModel):
+    msg_id: str
+    text: str
+
+
+class EditMessageResponse(BaseModel):
+    message: str
+    detail: EditMsgResponse

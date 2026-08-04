@@ -1,0 +1,59 @@
+from starlette import status
+from schemas import AddMessageRequest, EditMessageRequest, AddMessageResponse, EditMessageResponse, EditMsgResponse
+from fastapi import APIRouter, Path, Depends
+from dependencies import get_chat, get_message
+from models import Chat, Message
+from services.chat_service import ChatService
+
+# Initializing User Router
+chat_router = APIRouter(
+    prefix="/chats",
+    tags=["chats"]
+)
+
+# Creating an instance of Chat Service
+chat_service = ChatService()
+
+# Add Message
+@chat_router.post("/{chat_id}/messages", response_model=AddMessageResponse, status_code=status.HTTP_201_CREATED)
+def add_message(
+    request: AddMessageRequest,
+    chat_id: str = Path(
+            ...,
+            description="The id of the chat you are adding to.",
+        ),
+    chat: Chat = Depends(get_chat)
+)->AddMessageResponse:
+
+    msg = chat_service.add_message(
+        chat = chat,
+        text = request.text
+    )
+
+    return AddMessageResponse(
+        message = "Message added successfully!",
+        detail = {
+            "chat_id": chat_id,
+            "message": msg.text
+        }
+    )
+
+@chat_router.patch("/{chat_id}/messages/{message_id}", response_model=EditMessageResponse, status_code= status.HTTP_200_OK)
+def edit_message(
+        request: EditMessageRequest,
+        message: Message = Depends(get_message)
+
+) -> EditMessageResponse:
+
+    msg = chat_service.edit_message(
+        message = message,
+        new_text = request.text
+    )
+
+    return EditMessageResponse(
+        message = "Message edited successfully!",
+        detail = EditMsgResponse(
+            msg_id = msg.id,
+            text = msg.text
+    )
+)
