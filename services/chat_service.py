@@ -2,7 +2,7 @@ import uuid
 from datetime import datetime
 from models import Chat, Message
 from logger import logger
-from exceptions import MessageNotFoundError, ChatRenameError
+from exceptions import ChatRenameError
 
 # Adds new messages
 

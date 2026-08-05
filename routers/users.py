@@ -1,5 +1,6 @@
 from starlette import status
-from schemas import CreateChatRequest, CreateChatResponse, ChatResponse, DeleteChatResponse, UpdateEmailResponse, UpdateEmailRequest
+from schemas import CreateChatRequest, CreateChatResponse, ChatResponse, DeleteChatResponse, UpdateEmailResponse, \
+    UpdateEmailRequest, UpdateEmailDetail
 from fastapi import APIRouter, Path
 from fastapi.params import Depends
 from dependencies import get_curr_user
@@ -69,14 +70,17 @@ def update_email(
         user: UserAccount = Depends(get_curr_user),
 ) -> UpdateEmailResponse:
 
-    user_service.update_email(
+    user = user_service.update_email(
         user = user,
         new_email = request.new_email
     )
 
     return UpdateEmailResponse(
         message= "Email updated successfully!",
-        email= user.email
+        detail = UpdateEmailDetail(
+            username=user.username,
+            email=user.email
+        )
     )
 
 

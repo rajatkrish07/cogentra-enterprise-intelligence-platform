@@ -45,11 +45,12 @@ class UserService:
         return chat
 
     # Updates user email
-    def update_email(self, user: UserAccount, new_email: EmailStr)->None:
+    def update_email(self, user: UserAccount, new_email: EmailStr)->UserAccount:
         if user.email == new_email:
             raise NoEmailChangeError
 
         user.email = new_email
-        logger.info(f"Email updated successfully to {new_email}.")
+        logger.info(f"Email updated successfully to {user.email}.")
+        return user
 
 

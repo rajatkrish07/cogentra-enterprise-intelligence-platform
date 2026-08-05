@@ -1,7 +1,6 @@
 from starlette import status
 from schemas import AddMessageRequest, EditMessageRequest, AddMessageResponse, EditMessageResponse, EditMsgResponse, \
-    RenameChatRequest, RenameChatResponse, RenameChatDetail, DeleteMessageResponse, DeleteMessageRequest, \
-    DeleteMessageDetail
+    RenameChatRequest, RenameChatResponse, RenameChatDetail, DeleteMessageResponse, DeleteMessageDetail
 from fastapi import APIRouter, Path, Depends
 from dependencies import get_chat, get_message
 from models import Chat, Message

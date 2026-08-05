@@ -3,10 +3,6 @@ import json
 from datetime import datetime
 from pydantic import BaseModel, Field, field_validator, EmailStr, ConfigDict, computed_field
 from logger import logger
-from exceptions import (
-    MessageNotFoundError,
-    ChatRenameError
-)
 
 # Manages all the operations like creating user and managing chats
 class UserAccount(BaseModel):

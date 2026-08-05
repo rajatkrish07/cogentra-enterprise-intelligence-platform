@@ -17,7 +17,6 @@ class AIUserResponse(BaseModel):
     chat_count: int
 
 # Request Model:
-
 class GenerateResponseRequest(BaseModel):
     prompt: str = Field(
         ...,
@@ -31,8 +30,6 @@ class CurrentUser(BaseModel):
     username: str
     email: EmailStr
     chats: list[Chat]
-
-# Response Model
 
 class GenerateAIResponse(BaseModel):
     chat_id: str
@@ -50,98 +47,78 @@ class RegenerateAIResponse(BaseModel):
     message: str
     response: AIResponseSchema
 
-
 class ResponseHistorySchema(BaseModel):
     message: str
     responses: list[AIResponseSchema]
-
 
 class UserRegistrationRequest(BaseModel):
     username: str
     email: EmailStr
 
-
 class CreateChatRequest(BaseModel):
     title: str
-
 
 class ChatResponse(BaseModel):
     id: str
     title: str
 
-
 class CreateChatResponse(BaseModel):
     message: str
     chat: ChatResponse
 
-
 class DeleteChatRequest(BaseModel):
     id: str
-
 
 class DeleteChatResponse(BaseModel):
     message: str
     chat: ChatResponse
 
-
 class UpdateEmailRequest(BaseModel):
     new_email: EmailStr
 
+class UpdateEmailDetail(BaseModel):
+    username: str
+    email: EmailStr
 
 class UpdateEmailResponse(BaseModel):
     message: str
-    email: EmailStr
-
+    detail: UpdateEmailDetail
 
 class AddMessageRequest(BaseModel):
     text: str
-
 
 class AddMsgResponse(BaseModel):
     chat_id: str
     text: str
 
-
 class AddMessageResponse(BaseModel):
     message: str
     detail: AddMsgResponse
 
-
 class EditMessageRequest(BaseModel):
     text: str
-
 
 class EditMsgResponse(BaseModel):
     msg_id: str
     text: str
 
-
 class EditMessageResponse(BaseModel):
     message: str
     detail: EditMsgResponse
 
-
 class RenameChatRequest(BaseModel):
     title: str
-
 
 class RenameChatDetail(BaseModel):
     chat_id: str
     title: str
 
-
 class RenameChatResponse(BaseModel):
     message: str
     detail: RenameChatDetail
 
-
-class DeleteMessageRequest(BaseModel):
-    message_id: str
-
-
 class DeleteMessageDetail(BaseModel):
     message_id: str
-
 
 class DeleteMessageResponse(BaseModel):
     message: str
