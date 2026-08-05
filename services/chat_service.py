@@ -1,3 +1,4 @@
+import uuid
 from datetime import datetime
 from models import Chat, Message
 from logger import logger
@@ -7,34 +8,41 @@ from exceptions import MessageNotFoundError, ChatRenameError
 
 class ChatService:
 
-    def add_message(self, chat: Chat, text: str) -> Message:
+# Adds New Message
+    def add_message(
+            self,
+            chat: Chat,
+            text: str
+    ) -> Message:
+
+        id = str(uuid.uuid4())
         timestamp = datetime.now()
-        msg = Message(timestamp=timestamp, text=text)
+        msg = Message(
+            chat_id=chat.id,
+            id=id,
+            timestamp=timestamp,
+            text=text
+        )
         chat.messages.append(msg)
-        logger.info(f"Message added to chat '{chat.title}'.")
+        logger.info(f"Message {id} added to chat .")
         return msg
 
-    # Edit existing messages
+# Edit existing messages
     def edit_message(self, message: Message, new_text: str) -> Message:
         message.text = new_text
         logger.info(f"Message {message.id} edited successfully!")
         return message
 
-    # Rename chats
-    def rename_chat(self, new_title: str) -> None:
-        if self.title != new_title:
-            self.title = new_title
-            logger.info(f"Chat renamed to '{self.title}'.")
+# Rename chats
+    def rename_chat(self, chat: Chat, new_title: str) -> Chat:
+        if chat.title == new_title:
+            raise ChatRenameError("New title must be different from the current title.")
+        chat.title = new_title
+        logger.info(f"Chat renamed to '{chat.title}'.")
+        return chat
 
-        else:
-            raise ChatRenameError(f"Chat '{new_title}' already exists.")
-
-    # Deletes messages
-    def delete_message(self, text: str) -> None:
-        for msgs in self.messages:
-            if msgs.text == text:
-                self.messages.remove(msgs)
-                logger.info(f"Message deleted successfully to {self.title}")
-                return
-
-        raise MessageNotFoundError(f"Message '{text}' not found in chat '{self.title}'.")
+# Deletes messages
+    def delete_message(self, chat: Chat, message: Message) -> Message:
+            chat.messages.remove(message)
+            logger.info(f"Message {message.id} deleted successfully!")
+            return message

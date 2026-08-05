@@ -6,6 +6,7 @@ from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 from logger import logger
 from routers.users import user_router
+from routers.chats import chat_router
 from routers.messages import message_router
 from routers.ai_user import ai_router
 from routers.admin import admin_router
@@ -27,6 +28,7 @@ app = FastAPI(
 
 # Registering the routers with the app
 app.include_router(user_router)
+app.include_router(chat_router)
 app.include_router(message_router)
 app.include_router(ai_router)
 app.include_router(admin_router)

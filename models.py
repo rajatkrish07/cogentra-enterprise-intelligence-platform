@@ -121,52 +121,6 @@ class Chat(BaseModel):
         value = value.strip()
         return value
 
-    # Computing message count
-    @computed_field
-    @property
-    def message_count(self) -> int:
-        return len(self.messages)
-
-    # Display messages
-    def display_messages(self) -> list:
-        return self.messages.copy()
-
-    # Adds new messages
-    def add_message(self, text: str) -> None:
-        timestamp = datetime.now()
-        msg = Message(timestamp=timestamp, text=text)
-        self.messages.append(msg)
-        logger.info(f"Message added to chat '{self.title}'.")
-
-    # Edit existing messages
-    def edit_message(self, text: str, new_text: str) -> None:
-        for msg in self.messages:
-            if msg.text == text:
-                msg.text = new_text
-                logger.info(f"Message edited successfully to '{self.title}'.")
-                return
-
-        raise MessageNotFoundError(f"Message '{text}' not found in chat '{self.title}'.")
-
-    # Rename chats
-    def rename_chat(self, new_title: str) -> None:
-        if self.title != new_title:
-            self.title = new_title
-            logger.info(f"Chat renamed to '{self.title}'.")
-
-        else:
-            raise ChatRenameError(f"Chat '{new_title}' already exists.")
-
-    # Deletes messages
-    def delete_message(self, text: str) -> None:
-        for msgs in self.messages:
-            if msgs.text == text:
-                self.messages.remove(msgs)
-                logger.info(f"Message deleted successfully to {self.title}")
-                return
-
-        raise MessageNotFoundError(f"Message '{text}' not found in chat '{self.title}'.")
-
 
 class Message(BaseModel):
     id: str = Field(min_length=1)

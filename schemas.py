@@ -119,3 +119,30 @@ class EditMsgResponse(BaseModel):
 class EditMessageResponse(BaseModel):
     message: str
     detail: EditMsgResponse
+
+
+class RenameChatRequest(BaseModel):
+    title: str
+
+
+class RenameChatDetail(BaseModel):
+    chat_id: str
+    title: str
+
+
+class RenameChatResponse(BaseModel):
+    message: str
+    detail: RenameChatDetail
+
+
+class DeleteMessageRequest(BaseModel):
+    message_id: str
+
+
+class DeleteMessageDetail(BaseModel):
+    message_id: str
+
+
+class DeleteMessageResponse(BaseModel):
+    message: str
+    detail: DeleteMessageDetail

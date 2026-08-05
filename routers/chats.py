@@ -1,5 +1,7 @@
 from starlette import status
-from schemas import AddMessageRequest, EditMessageRequest, AddMessageResponse, EditMessageResponse, EditMsgResponse
+from schemas import AddMessageRequest, EditMessageRequest, AddMessageResponse, EditMessageResponse, EditMsgResponse, \
+    RenameChatRequest, RenameChatResponse, RenameChatDetail, DeleteMessageResponse, DeleteMessageRequest, \
+    DeleteMessageDetail
 from fastapi import APIRouter, Path, Depends
 from dependencies import get_chat, get_message
 from models import Chat, Message
@@ -34,7 +36,7 @@ def add_message(
         message = "Message added successfully!",
         detail = {
             "chat_id": chat_id,
-            "message": msg.text
+            "text": msg.text
         }
     )
 
@@ -57,3 +59,40 @@ def edit_message(
             text = msg.text
     )
 )
+
+@chat_router.patch("/{chat_id}", response_model=RenameChatResponse, status_code=status.HTTP_200_OK)
+def rename_chat(
+        request: RenameChatRequest,
+        chat: Chat = Depends(get_chat)
+) -> RenameChatResponse:
+
+    chat = chat_service.rename_chat(
+        chat = chat,
+        new_title = request.title
+    )
+
+    return RenameChatResponse(
+        message = "Chat renamed successfully!",
+        detail = RenameChatDetail(
+            chat_id=chat.id,
+            title=chat.title
+        )
+    )
+
+@chat_router.delete("/{chat_id}/messages/{message_id}", response_model=DeleteMessageResponse, status_code=status.HTTP_200_OK)
+def delete_message(
+        chat: Chat = Depends(get_chat),
+        message: Message = Depends(get_message)
+) -> DeleteMessageResponse:
+
+    msg = chat_service.delete_message(
+        chat = chat,
+        message = message
+    )
+
+    return DeleteMessageResponse(
+        message = "Message deleted successfully!",
+        detail = DeleteMessageDetail(
+            message_id = msg.id
+        )
+    )
