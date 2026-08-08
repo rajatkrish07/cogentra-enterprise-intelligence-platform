@@ -1,6 +1,7 @@
 from datetime import datetime
 from database.database import SessionLocal
 from models import AIResponseORM
+from sqlalchemy import select, or_
 
 # Database Test Section
 db = SessionLocal()
@@ -83,7 +84,54 @@ play13 = AIResponseORM(
     text="This is response seven",
     created_at=datetime.now()
 )
-# db.add(play13)
+
+play14 = AIResponseORM(
+    id="play_014",
+    text="Understanding SQLAlchemy",
+    created_at=datetime.now()
+)
+
+# db.add(play14)
 
 # Commits changes to the database
 db.commit()
+
+# Reading values frm the db as python objects (Similar to SELECT * FROM AIResponseORM)
+stmt = select(AIResponseORM)
+execute = db.execute(stmt)
+results=execute.scalars().all()
+
+for result in results:
+    print(result.id, result.text)
+
+# Reading values frm the db as python objects (Similar to SELECT * FROM AIResponseORM WHERE id = "play007")
+stmt = select(AIResponseORM).where(
+    AIResponseORM.id == "play_007",
+)
+execute = db.execute(stmt)
+result = execute.scalars().one()
+print(result.id, result.text)
+
+# Multiple WHERE conditions
+stmt = select(AIResponseORM).where(
+    AIResponseORM.id == "play_007",
+    AIResponseORM.text == "This is response seven"
+)
+
+execute = db.execute(stmt)
+result = execute.scalars().one()
+print(result.id, result.text)
+
+# OR Condition
+stmt = select(AIResponseORM).where(
+    or_(
+        AIResponseORM.id == "play_007",
+        AIResponseORM.id == "play_008"
+    )
+)
+
+execute = db.execute(stmt)
+results = execute.scalars().all()
+
+for result in results:
+    print(result.id, result.text)
