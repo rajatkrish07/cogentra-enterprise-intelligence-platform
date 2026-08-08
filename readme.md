@@ -2,260 +2,80 @@
 
 # Cogentra
 
-### Enterprise Intelligence Platform
+**An AI chat platform backend, structured in independently evolving layers.**
 
-*A production-oriented AI backend platform for building intelligent applications, Retrieval-Augmented Generation (RAG) systems, and Agentic AI workflows using modern backend engineering principles.*
+FastAPI · Pydantic v2 · SQLAlchemy — status: active development
 
-![Python](https://img.shields.io/badge/Python-3.x-blue)
-![FastAPI](https://img.shields.io/badge/FastAPI-Learning-009688)
-![Pydantic](https://img.shields.io/badge/Pydantic-v2-E92063)
-![Architecture](https://img.shields.io/badge/Architecture-Modular-success)
-![Status](https://img.shields.io/badge/Status-Active%20Development-orange)
-
----
-
-*"Building software the way production systems evolve—not the way tutorials are written."*
+[Overview](#overview) · [System Modules](#system-modules) · [Where Things Stand Today](#where-things-stand-today) · [What's Ahead](#whats-ahead)
 
 </div>
 
 ---
 
-# 📖 Overview
+## Overview
 
-Cogentra is an enterprise-oriented AI backend platform being engineered from the ground up to understand how modern intelligent systems are designed, built, and deployed.
+Cogentra is a backend for an AI chat application, built under one constraint: understand a layer fully before adding the next. The system is organized as a small number of independent modules — domain modeling, API surface, business logic, error handling, and persistence — each introduced at a different stage of the project's development and each replaceable without rewriting the others.
 
-Unlike tutorial-based projects, Cogentra follows an **incremental engineering approach**, where every architectural decision, refactor, and feature addition reflects practices commonly adopted in production software.
+The long-term aim is a platform capable of real conversational AI, retrieval-augmented generation, and agentic workflows. The modules below reflect what's actually built toward that so far, not the destination itself.
 
-The long-term objective is to evolve Cogentra into a complete AI platform capable of supporting:
-
-- 🤖 Large Language Models (LLMs)
-- 📚 Retrieval-Augmented Generation (RAG)
-- 🧠 Agentic AI Workflows
-- 📄 Document Intelligence
-- 🔍 Semantic Search
-- ⚙️ Enterprise API Services
-- ☁️ Cloud Deployment
+> **Status note:** This is a solo, in-progress project. [Where Things Stand Today](#where-things-stand-today) is written to be explicit about which modules are functionally complete and which are scaffolding.
 
 ---
 
-# 🎯 Engineering Philosophy
+## System Modules
 
-This repository is built around one principle:
+### 01 · Domain & Validation Layer
 
-> **Understand every layer before adding the next one.**
+The foundation of the system, and the part that predates the web framework entirely. Core entities — user, chat, message, AI response — are defined as Pydantic v2 models rather than plain data classes, which means validation is a property of the object itself and not something re-implemented at every entry point. Field-level validators enforce invariants (non-empty identifiers, bounded message length, well-formed email addresses), a computed field derives values that shouldn't be stored redundantly, and strict schema configuration rejects any field the model doesn't explicitly define. This layer is deliberately framework-agnostic — it has no knowledge of HTTP.
 
-Instead of assembling frameworks together, Cogentra focuses on understanding:
+### 02 · API Layer
 
-- Software Architecture
-- Backend Design
-- Object-Oriented Engineering
-- API Design
-- Data Validation
-- Modular Development
-- Scalability
-- Maintainability
+Built on FastAPI, with the routing surface segmented by domain concern rather than centralized into one router — users, chats, messages, and administrative views are each owned by their own module. Requests and responses are described by dedicated schema classes, kept distinct from the domain models above so the external contract can evolve independently of internal representation. Shared request-time context — the resolved current user, the resolved chat, the resolved message — is supplied through the framework's dependency-injection graph rather than re-derived in each handler, and that same dependency graph is what drives the auto-generated OpenAPI documentation.
 
-Every feature added to the repository serves an architectural purpose.
+### 03 · Service Layer
 
----
+Business rules — what makes a chat a duplicate, what a valid rename looks like, how a message gets edited — live in dedicated service classes, one per domain area, sitting between the API layer and the domain models. Routers call services; services have no awareness of HTTP status codes or request objects. This boundary is what lets the routing layer stay thin and lets business logic be reasoned about independently of the transport mechanism carrying it.
 
-# 🚀 Current Capabilities
+### 04 · Error Handling & Observability
 
-## Backend Engineering
+Failure is modeled as a first-class concern rather than an afterthought. A hierarchy of typed, domain-specific exceptions distinguishes a missing user from a missing chat from a missing message, and each is caught by a global exception-handling layer registered against FastAPI's exception hooks. Every handled exception — and any unhandled one, as a fallback — is normalized into the same JSON error envelope: a stable error code, a human-readable message, and a request identifier. That identifier is generated per-request by a middleware layer that also measures request latency, both surfaced back to the client through response headers, so failures remain traceable after the fact.
 
-- ✅ Object-Oriented Design
-- ✅ Domain Models
-- ✅ Custom Exception Hierarchy
-- ✅ Centralized Logging
-- ✅ JSON Persistence
-- ✅ Modular Project Architecture
-- ✅ Clean Separation of Responsibilities
+### 05 · Persistence Layer — *in progress*
+
+The system currently runs on process-local state held directly on the domain models — nothing survives a restart. A persistence module is being built in parallel rather than bolted on: a database engine, a session factory, and a declarative ORM base are in place, with one ORM-mapped entity implemented and exercised in isolation. The intended migration is incremental — moving each service's state onto this layer one at a time — rather than a single cutover that would require rewriting the modules above it simultaneously.
 
 ---
 
-## API Development
+## Where Things Stand Today
 
-- ✅ FastAPI
-- ✅ REST API Design
-- ✅ Request Validation
-- ✅ Response Models
-- ✅ Path Parameters
-- ✅ Query Parameters
-- ✅ Interactive Swagger Documentation
-
----
-
-# 🏗 Project Architecture
-
-```text
-Cogentra
-│
-├── main.py
-│
-├── models.py
-│      ├── UserAccount
-│      ├── Chat
-│      └── Message
-│
-├── schemas.py
-│      ├── UserResponse
-│      ├── AdminUserResponse
-│      └── AIUserResponse
-│
-├── exceptions.py
-│
-├── logger.py
-│
-├── playground.py
-│
-└── user_data.json
-```
+- Authentication isn't implemented yet — the API currently resolves every request against a single fixed identity supplied through dependency injection, not a real per-request authenticated user.
+- Chat and message state is held entirely in memory on the domain models and does not persist across process restarts.
+- The persistence module (engine, session factory, declarative base) exists but isn't yet consumed by any service or router.
+- AI response generation currently returns static placeholder output rather than a real model call.
+- Domain validation is enforced at object construction time but isn't consistently re-applied when an existing object is later mutated.
+- No automated test suite exists yet.
 
 ---
 
-# 🧩 Architectural Layers
+## What's Ahead
 
-```text
-                Client
-                   │
-                   ▼
-             FastAPI Routes
-                   │
-                   ▼
-         Request / Response Schemas
-                   │
-                   ▼
-            Domain Models
-                   │
-                   ▼
-        Business Logic & Validation
-                   │
-                   ▼
-            Data Persistence
-```
-
-Each layer has a single responsibility and remains independent wherever possible.
+- Migrate each service's in-memory state onto the persistence layer, incrementally rather than all at once
+- Replace the fixed dependency-injected identity with real authentication and per-user authorization
+- Externalize configuration — currently hardcoded — into environment-driven settings
+- Replace placeholder AI response generation with an actual model integration
+- Introduce an automated test suite, containerization, and CI
+- Layer retrieval-augmented generation and agentic workflows on top of the modules above
 
 ---
 
-# 💻 Technology Stack
+## Contributing
 
-| Category | Technology |
-|-----------|------------|
-| Language | <img src="https://cdn.simpleicons.org/python/3776AB" width="20" height="20" alt="Python"/> Python |
-| API Framework | FastAPI |
-| Validation | <img src="https://cdn.simpleicons.org/pydantic/E92063" width="20" height="20" alt="Pydantic"/> Pydantic v2 |
-| Documentation | OpenAPI / Swagger |
-| Logging | Python Logging |
-| Version Control | Git & GitHub |
-| Persistence | JSON |
-| Architecture | Modular Python |
+This is currently a solo project documenting the path toward a production-style AI backend. Feedback, questions, and suggestions on direction are welcome via GitHub.
 
----
+## License
 
-# 📈 Development Roadmap
+No license file is currently included, so all rights are reserved by default. If the project starts accepting outside contributions or reuse, adding an OSI-approved license is a reasonable next step.
 
-## ✅ Phase 1 — Python Engineering
+## Author
 
-- Variables
-- Functions
-- Exception Handling
-- File Handling
-- Object-Oriented Programming
-- JSON Serialization
-
----
-
-## ✅ Phase 2 — Backend Foundation
-
-- FastAPI
-- REST APIs
-- Request Validation
-- Response Schemas
-- API Documentation
-- Modular Architecture
-
----
-
-## 🚧 Phase 3 — Database Layer
-
-- SQL
-- SQLAlchemy ORM
-- Alembic
-- Repository Pattern
-
----
-
-## ⏳ Phase 4 — Authentication
-
-- JWT
-- Password Hashing
-- Authorization
-- RBAC
-
----
-
-## ⏳ Phase 5 — Enterprise Backend
-
-- Dependency Injection
-- Docker
-- Environment Management
-- Testing
-- CI/CD
-
----
-
-## ⏳ Phase 6 — AI Engineering
-
-- OpenAI
-- LangChain
-- Vector Databases
-- Retrieval-Augmented Generation
-- AI Agents
-- Multi-Agent Systems
-
----
-
-# 🎓 Learning Approach
-
-Cogentra is intentionally developed as a single evolving platform rather than multiple disconnected projects.
-
-Each milestone builds directly upon previous work, enabling deeper understanding of backend engineering, system architecture, and AI application development.
-
-The focus is not on completing tutorials, but on developing engineering intuition.
-
----
-
-# 📌 Current Milestone
-
-**Backend Foundation & API Development**
-
-✔ Domain Models
-
-✔ Modular Architecture
-
-✔ FastAPI
-
-✔ Request / Response Validation
-
-✔ REST API Design
-
-➡ Next Milestone: SQLAlchemy ORM & Database Layer
-
----
-
-# 🤝 Contributing
-
-This repository currently serves as a personal engineering project documenting the journey toward building production-grade AI backend systems.
-
-Contributions, discussions, suggestions, and architectural feedback are always welcome.
-
----
-
-<div align="center">
-
-### ⭐ If you found this project interesting, consider giving it a star.
-
-*"Great software is built through understanding, not memorization."*
-
-</div>
+**Rajat Krishnan** — [@rajatkrish07](https://github.com/rajatkrish07)
