@@ -2,7 +2,10 @@ from __future__ import annotations
 import json
 from datetime import datetime
 from pydantic import BaseModel, Field, field_validator, EmailStr, ConfigDict, computed_field
+from sqlalchemy import DateTime, String, text
+from sqlalchemy.orm import Mapped, mapped_column
 from logger import logger
+from database.database import Base, engine
 
 # Manages all the operations like creating user and managing chats
 class UserAccount(BaseModel):
@@ -117,7 +120,7 @@ class Chat(BaseModel):
         value = value.strip()
         return value
 
-
+# Manages all the messages
 class Message(BaseModel):
     id: str = Field(min_length=1)
     chat_id: str = Field(min_length=1)
@@ -150,4 +153,23 @@ class AIResponse(BaseModel):
         if value == "":
             raise ValueError("Response text cannot be empty.")
         return value
+
+
+# AIResponse ORM Model
+class AIResponseORM(Base):
+    __tablename__ = "ai_response_orm"
+    id: Mapped[str] = mapped_column(
+        String,
+        primary_key=True,
+    )
+    text: Mapped[str] = mapped_column(
+        String,
+        nullable=False,
+    )
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime,
+        nullable=False
+    )
+
+Base.metadata.create_all(bind=engine)
 
