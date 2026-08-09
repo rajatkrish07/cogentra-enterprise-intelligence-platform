@@ -1,42 +1,44 @@
 from datetime import datetime
-from models import Message, AIResponse
+from models import Message, AIResponseORM
+from repositories.ai_response_repository import AIResponseRepository
 
 class AIService:
 
-    def generate_response(
-            self,
-            message: Message
-    )->AIResponse:
+    def __init__(self, repository: AIResponseRepository):
+        self.repository = repository
 
-        response = AIResponse(
-            id="resp_009",
+# Generates response
+    def generate_response(
+            self
+    )->AIResponseORM:
+
+        response = AIResponseORM(
+            id="resp_020",
             text="This is a generated AI response.",
             created_at=datetime.now()
         )
 
-        message.responses.append(response)
-
+        self.repository.create(response)
         return response
 
+# Regenerates response
     def regenerate_response(
-            self,
-            message: Message
-    )->AIResponse:
+            self
+    )->AIResponseORM:
 
-        new_response = AIResponse(
-            id="resp_009",
+        new_response = AIResponseORM(
+            id="resp_021",
             text="This is a regenerated AI response.",
             created_at=datetime.now()
         )
 
-        message.responses.append(new_response)
-
+        self.repository.create(new_response)
         return new_response
 
+# Returns response history
     def response_history(
             self,
-            message: Message
-    )->list[AIResponse]:
+    )->list[AIResponseORM]:
 
-        return message.responses
+        return self.repository.get_all()
 
