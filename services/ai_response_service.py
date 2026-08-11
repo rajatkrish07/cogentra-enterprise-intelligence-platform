@@ -1,5 +1,6 @@
+from uuid import uuid4
 from datetime import datetime
-from models import Message, AIResponseORM
+from models import AIResponseORM
 from repositories.ai_response_repository import AIResponseRepository
 
 class AIService:
@@ -13,7 +14,8 @@ class AIService:
     )->AIResponseORM:
 
         response = AIResponseORM(
-            id="resp_020",
+            id=str(uuid4()),
+            message_id=str(uuid4()),
             text="This is a generated AI response.",
             created_at=datetime.now()
         )
@@ -27,7 +29,8 @@ class AIService:
     )->AIResponseORM:
 
         new_response = AIResponseORM(
-            id="resp_021",
+            id=str(uuid4()),
+            message_id=str(uuid4()),
             text="This is a regenerated AI response.",
             created_at=datetime.now()
         )

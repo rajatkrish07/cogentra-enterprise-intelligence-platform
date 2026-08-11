@@ -2,8 +2,8 @@ from __future__ import annotations
 import json
 from datetime import datetime
 from pydantic import BaseModel, Field, field_validator, EmailStr, ConfigDict, computed_field
-from sqlalchemy import DateTime, String, text
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy import DateTime, String, ForeignKey
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 from logger import logger
 from database.database import Base, engine
 
@@ -126,7 +126,6 @@ class Message(BaseModel):
     chat_id: str = Field(min_length=1)
     timestamp: datetime
     text: str = Field(min_length=1, max_length=5000)
-    responses: list[AIResponse] = Field(default_factory=list)
 
     # Model Config: Raises ValidationError when an extra field is passed during object creation.
     model_config = ConfigDict(
@@ -141,30 +140,86 @@ class Message(BaseModel):
             raise ValueError("Message text cannot be empty.")
         return value
 
-class AIResponse(BaseModel):
-    id: str = Field(min_length=1)
-    text: str = Field(min_length=1, max_length=5000)
-    created_at: datetime
+# User ORM Model
+class UserORM(Base):
+    __tablename__ = "user_orm"
+    id: Mapped[str] = mapped_column(
+        String,
+        primary_key=True
+    )
+    username: Mapped[str] = mapped_column(
+        String,
+        nullable=False,
+        unique=True
+    )
+    email: Mapped[str] = mapped_column(
+        String,
+        nullable=False,
+        unique=True
+    )
+    chats: Mapped[list[ChatORM]] = relationship()
 
-    @field_validator("text")
-    @classmethod
-    def validate_response_text(cls, value: str) -> str:
-        value = value.strip()
-        if value == "":
-            raise ValueError("Response text cannot be empty.")
-        return value
+    first_name: Mapped[str] = mapped_column(
+        String,
+        nullable=False
+    )
+    last_name: Mapped[str] = mapped_column(
+        String,
+        nullable=False
+    )
 
+# Chat ORM Model
+class ChatORM(Base):
+    __tablename__ = "chats_orm"
+    id: Mapped[str] = mapped_column(
+        String,
+        primary_key=True
+    )
+    user_id: Mapped[str] = mapped_column(
+        ForeignKey("user_orm.id"),
+        nullable=False,
+    )
+    title: Mapped[str] = mapped_column(
+        String,
+        nullable=False
+    )
+    messages: Mapped[list[MessageORM]] = relationship()
+
+# Message ORM Model
+class MessageORM(Base):
+    __tablename__ = "messages_orm"
+    id: Mapped[str] = mapped_column(
+        String,
+        primary_key=True
+    )
+    chat_id: Mapped[str] = mapped_column(
+        ForeignKey("chats_orm.id"),
+        nullable=False,
+    )
+    timestamp: Mapped[datetime] = mapped_column(
+        DateTime,
+        nullable=False,
+    )
+    text: Mapped[str] = mapped_column(
+        String,
+        nullable=False,
+    )
+    responses: Mapped[list[AIResponseORM]] = relationship()
 
 # AIResponse ORM Model
 class AIResponseORM(Base):
     __tablename__ = "ai_response_orm"
     id: Mapped[str] = mapped_column(
         String,
-        primary_key=True,
+        primary_key=True
+    )
+    message_id: Mapped[str] = mapped_column(
+        ForeignKey("messages_orm.id"),
+        nullable=False
     )
     text: Mapped[str] = mapped_column(
         String,
-        nullable=False,
+        nullable=False
     )
     created_at: Mapped[datetime] = mapped_column(
         DateTime,

@@ -32,9 +32,6 @@ class CurrentUser(BaseModel):
     chats: list[Chat]
 
 class GenerateAIResponse(BaseModel):
-    chat_id: str
-    message_id: str
-    user_prompt: str
     ai_response: str
     version: str
 

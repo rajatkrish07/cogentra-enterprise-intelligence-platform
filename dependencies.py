@@ -1,8 +1,12 @@
+import dbm
 from datetime import datetime
 from schemas import CurrentUser
-from models import Chat, Message, AIResponse
+from models import Chat, Message
 from exceptions import ChatNotFoundError, MessageNotFoundError
 from fastapi import Depends, Path
+from database.database import SessionLocal
+from services.ai_response_service import AIService
+from repositories.ai_response_repository import AIResponseRepository
 
 # Returns API Version
 def get_api_version() -> str:
@@ -18,19 +22,11 @@ def get_curr_user() -> CurrentUser:
                 id="chat_001",
                 title="Python",
                 messages=[
-
                     Message(
                         id="msg_001",
                         chat_id="chat_001",
                         timestamp=datetime.now(),
                         text="What is Python?",
-                        responses=[
-                            AIResponse(
-                                id="resp_001",
-                                text="Python is a high-level, interpreted programming language known for its readability, simplicity, and extensive ecosystem.",
-                                created_at=datetime.now()
-                            )
-                        ]
                     ),
 
                     Message(
@@ -38,13 +34,6 @@ def get_curr_user() -> CurrentUser:
                         chat_id="chat_001",
                         timestamp=datetime.now(),
                         text="Explain OOP.",
-                        responses=[
-                            AIResponse(
-                                id="resp_002",
-                                text="Object-Oriented Programming (OOP) organizes code into classes and objects, enabling encapsulation, inheritance, polymorphism, and abstraction.",
-                                created_at=datetime.now()
-                            )
-                        ]
                     )
                 ]
             ),
@@ -59,13 +48,6 @@ def get_curr_user() -> CurrentUser:
                         chat_id="chat_002",
                         timestamp=datetime.now(),
                         text="What is Dependency Injection?",
-                        responses=[
-                            AIResponse(
-                                id="resp_003",
-                                text="Dependency Injection is a design pattern where FastAPI automatically provides required objects or services to your endpoint functions.",
-                                created_at=datetime.now()
-                            )
-                        ]
                     ),
 
                     Message(
@@ -73,13 +55,6 @@ def get_curr_user() -> CurrentUser:
                         chat_id="chat_002",
                         timestamp=datetime.now(),
                         text="Explain Path Parameters.",
-                        responses=[
-                            AIResponse(
-                                id="resp_004",
-                                text="Path parameters are dynamic values embedded in a URL that allow endpoints to identify and operate on specific resources.",
-                                created_at=datetime.now()
-                            )
-                        ]
                     )
                 ]
             ),
@@ -92,28 +67,15 @@ def get_curr_user() -> CurrentUser:
                          id="msg_005",
                          chat_id="chat_003",
                          timestamp=datetime.now(),
-                         text="What is Retrieval-Augmented Generation?",
-                         responses=[
-                             AIResponse(
-                                 id="resp_005",
-                                 text="Retrieval-Augmented Generation (RAG) combines information retrieval with large language models to produce more accurate and context-aware responses.",
-                                 created_at=datetime.now()
-                             )
-                         ]
+                         text="What is Retrieval-Augmented Generation?"
                      ),
+
                      Message(
                          id="msg_006",
                          chat_id="chat_003",
                          timestamp=datetime.now(),
-                         text="Explain Vector Databases.",
-                         responses=[
-                             AIResponse(
-                                 id="resp_006",
-                                 text="Vector databases store embeddings and enable efficient similarity search, making them essential for semantic search and RAG systems.",
-                                 created_at=datetime.now()
-                             )
-                         ]
-                     ),
+                         text="Explain Vector Databases."
+                     )
                  ]
             ),
 
@@ -126,14 +88,7 @@ def get_curr_user() -> CurrentUser:
                          id="msg_007",
                          chat_id="chat_004",
                          timestamp=datetime.now(),
-                         text="What are AI Agents?",
-                         responses=[
-                             AIResponse(
-                                 id="resp_007",
-                                 text="AI Agents are autonomous systems that perceive their environment, reason about goals, and take actions to accomplish tasks with minimal human intervention.",
-                                 created_at=datetime.now()
-                             )
-                         ]
+                         text="What are AI Agents?"
                      ),
 
                      Message(
@@ -141,14 +96,7 @@ def get_curr_user() -> CurrentUser:
                          chat_id="chat_004",
                          timestamp=datetime.now(),
                          text="Explain Agentic Workflows.",
-                         responses=[
-                             AIResponse(
-                                 id="resp_008",
-                                 text="Agentic workflows combine planning, memory, reasoning, and tool usage to solve complex tasks through coordinated, multi-step execution.",
-                                 created_at=datetime.now()
-                             )
-                         ]
-                     ),
+                     )
                  ]
             ),
         ]
@@ -189,4 +137,18 @@ def get_message(
             return message
 
     raise MessageNotFoundError(message_id)
+
+# Repository dependency
+def get_ai_response_repository():
+    db = SessionLocal()
+
+    try:
+        yield AIResponseRepository(db)
+    finally:
+        db.close()
+
+def get_ai_service(
+        repository: AIResponseRepository = Depends(get_ai_response_repository)
+)-> AIService:
+    return AIService(repository)
 
