@@ -1,9 +1,9 @@
 from starlette import status
 from schemas import AddMessageRequest, EditMessageRequest, AddMessageResponse, EditMessageResponse, EditMsgResponse, \
-    RenameChatRequest, RenameChatResponse, RenameChatDetail, DeleteMessageResponse, DeleteMessageDetail
+    RenameChatRequest, RenameChatResponse, RenameChatDetail, DeleteMessageResponse, DeleteMessageDetail, AddMsgResponse
 from fastapi import APIRouter, Path, Depends
-from dependencies import get_chat, get_message
-from models import Chat, Message
+from dependencies import get_chat, get_message, get_chat_service
+from models import ChatORM, MessageORM
 from services.chat_service import ChatService
 
 # Initializing User Router
@@ -13,7 +13,7 @@ chat_router = APIRouter(
 )
 
 # Creating an instance of Chat Service
-chat_service = ChatService()
+chat_service: ChatService = Depends(get_chat_service)
 
 # Add Message
 @chat_router.post("/{chat_id}/messages", response_model=AddMessageResponse, status_code=status.HTTP_201_CREATED)
@@ -23,7 +23,7 @@ def add_message(
             ...,
             description="The id of the chat you are adding to.",
         ),
-    chat: Chat = Depends(get_chat)
+    chat: ChatORM = Depends(get_chat)
 )->AddMessageResponse:
 
     msg = chat_service.add_message(
@@ -33,16 +33,16 @@ def add_message(
 
     return AddMessageResponse(
         message = "Message added successfully!",
-        detail = {
-            "chat_id": chat_id,
-            "text": msg.text
-        }
+        detail = AddMsgResponse(
+            chat_id = chat_id,
+            text = msg.text
+        )
     )
 
 @chat_router.patch("/{chat_id}/messages/{message_id}", response_model=EditMessageResponse, status_code= status.HTTP_200_OK)
 def edit_message(
         request: EditMessageRequest,
-        message: Message = Depends(get_message)
+        message: MessageORM = Depends(get_message)
 
 ) -> EditMessageResponse:
 
@@ -62,7 +62,7 @@ def edit_message(
 @chat_router.patch("/{chat_id}", response_model=RenameChatResponse, status_code=status.HTTP_200_OK)
 def rename_chat(
         request: RenameChatRequest,
-        chat: Chat = Depends(get_chat)
+        chat: ChatORM = Depends(get_chat)
 ) -> RenameChatResponse:
 
     chat = chat_service.rename_chat(
@@ -80,8 +80,8 @@ def rename_chat(
 
 @chat_router.delete("/{chat_id}/messages/{message_id}", response_model=DeleteMessageResponse, status_code=status.HTTP_200_OK)
 def delete_message(
-        chat: Chat = Depends(get_chat),
-        message: Message = Depends(get_message)
+        chat: ChatORM = Depends(get_chat),
+        message: MessageORM = Depends(get_message)
 ) -> DeleteMessageResponse:
 
     msg = chat_service.delete_message(

@@ -1,4 +1,3 @@
-import dbm
 from datetime import datetime
 from schemas import CurrentUser
 from models import Chat, Message
@@ -6,7 +5,10 @@ from exceptions import ChatNotFoundError, MessageNotFoundError
 from fastapi import Depends, Path
 from database.database import SessionLocal
 from services.ai_response_service import AIService
+from services.chat_service import ChatService
 from repositories.ai_response_repository import AIResponseRepository
+from repositories.chat_repository import ChatRepository
+from repositories.message_repository import MessageRepository
 
 # Returns API Version
 def get_api_version() -> str:
@@ -139,16 +141,37 @@ def get_message(
     raise MessageNotFoundError(message_id)
 
 # Repository dependency
-def get_ai_response_repository():
+
+def get_db():
     db = SessionLocal()
 
     try:
-        yield AIResponseRepository(db)
+        yield db
     finally:
         db.close()
+
+def get_ai_response_repository(
+        db = Depends(get_db)
+):
+    return AIResponseRepository(db)
 
 def get_ai_service(
         repository: AIResponseRepository = Depends(get_ai_response_repository)
 )-> AIService:
     return AIService(repository)
 
+def get_chat_repository(
+        db = Depends(get_db)
+):
+    return ChatRepository(db)
+
+def get_message_repository(
+        db = Depends(get_db)
+):
+    return MessageRepository(db)
+
+def get_chat_service(
+        chat_repository: ChatRepository = Depends(get_chat_repository),
+        message_repository: MessageRepository = Depends(get_message_repository)
+) -> ChatService:
+    return ChatService(chat_repository, message_repository)

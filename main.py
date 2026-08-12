@@ -7,7 +7,7 @@ from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 from logger import logger
 from routers.users import user_router
-from routers.chats import chat_router
+from routers.chats_router import chat_router
 from routers.ai_response_router import ai_response_router
 from routers.admin import admin_router
 from routers.debug import debug_router
