@@ -1,8 +1,15 @@
 from models import MessageORM
+from sqlalchemy import select
 
 class MessageRepository:
     def __init__(self, db):
         self.db = db
+
+    def get(self, message_id: str) -> MessageORM | None:
+        stmt = select(MessageORM).where(MessageORM.id == message_id)
+        execute = self.db.execute(stmt)
+        result = execute.scalars().first()
+        return result
 
     def create(self, message: MessageORM):
         self.db.add(message)

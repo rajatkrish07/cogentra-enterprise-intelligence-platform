@@ -1,95 +1,30 @@
-import os
 import uuid
 from datetime import datetime
 from database.database import SessionLocal
-from models import UserORM, ChatORM, MessageORM, AIResponseORM
-from sqlalchemy import select, or_
-
-from repositories.ai_response_repository import AIResponseRepository
-from services.ai_response_service import AIService
-from services.chat_service import ChatService
+from models import UserORM, ChatORM, MessageORM, Message
 from repositories.chat_repository import ChatRepository
 from repositories.message_repository import MessageRepository
+from services.chat_service import ChatService
 
 
-# Database Test Section
+# Database Session
 db = SessionLocal()
 
-# Python objects (Table Entries)
 
-ai_response = AIResponseORM(
-    id="play_001",
-    message_id=str(uuid.uuid4()),
-    text="Hello From SQLAlchemy",
-    created_at=datetime.now()
-)
-
-db.add(ai_response)
-db.commit()
-
-# Commits changes to the database
-# db.commit()
-#
-# # Reading values frm the db as python objects (Similar to SELECT * FROM AIResponseORM)
-# stmt = select(AIResponseORM)
-# execute = db.execute(stmt)
-# results=execute.scalars().all()
-#
-# for result in results:
-#     print(result.id, result.text)
-#
-# # Reading values frm the db as python objects (Similar to SELECT * FROM AIResponseORM WHERE id = "play007")
-# stmt = select(AIResponseORM).where(
-#     AIResponseORM.id == "play_007",
-# )
-# execute = db.execute(stmt)
-# result = execute.scalars().one()
-# print(result.id, result.text)
-#
-# # Multiple WHERE conditions
-# stmt = select(AIResponseORM).where(
-#     AIResponseORM.id == "play_007",
-#     AIResponseORM.text == "This is response seven"
-# )
-#
-# execute = db.execute(stmt)
-# result = execute.scalars().one()
-# print(result.id, result.text)
-#
-# # OR Condition
-# stmt = select(AIResponseORM).where(
-#     or_(
-#         AIResponseORM.id == "play_007",
-#         AIResponseORM.id == "play_008"
-#     )
-# )
-#
-# execute = db.execute(stmt)
-# results = execute.scalars().all()
-#
-# for result in results:
-#     print(result.id, result.text)
-
+# Create test user
 user = UserORM(
     id=str(uuid.uuid4()),
-    username="test_user",
-    email="test@example.com",
+    username=f"test_user_{uuid.uuid4().hex[:8]}",
+    email=f"test_{uuid.uuid4().hex[:8]}@example.com",
     first_name="Test",
     last_name="User"
 )
 
-print("Before add:", user)
-# db.add(user)
-
-print("Before commit:", user)
+db.add(user)
 db.commit()
 
-print("After commit:", user)
 
-users = db.query(UserORM).all()
-print("Users in DB: ",users)
-
-
+# Create test chat
 chat = ChatORM(
     id=str(uuid.uuid4()),
     user_id=user.id,
@@ -99,54 +34,37 @@ chat = ChatORM(
 db.add(chat)
 db.commit()
 
+message = MessageORM(
+    id=str(uuid.uuid4()),
+    chat_id=chat.id,
+    timestamp=datetime.now(),
+    text="Test Message"
+)
+
+db.add(message)
+db.commit()
+
+# Initialize repositories
 chat_repo = ChatRepository(db)
 message_repo = MessageRepository(db)
 
+
+# Initialize service
 chat_service = ChatService(
     chat_repo,
     message_repo
 )
 
-message = chat_service.add_message(
-    chat = chat,
-    text = "Testing MessageORM persistence.",
-)
+# Test Chat retrieval
+chat_from_db = chat_repo.get_chat(chat.id)
+print("Chat:", chat_from_db.id)
+print("Title:", chat_from_db.title)
 
-edited_message = chat_service.edit_message(
-    message=message,
-    new_text="Updated message text."
-)
-#
-# delete_message = chat_service.delete_message(
-#     message=edited_message,
-# )
-#
-# remaining_messages = db.query(MessageORM).all()
-#
-# for msg in remaining_messages:
-#     print(msg.id, msg.text)
-#
-# deleted = db.get(MessageORM, delete_message.id)
-#
-# print("Deleted message:", deleted)
+# Test Message retrieval
+message_from_db = message_repo.get(message.id)
+print("Message:", message_from_db.id)
+print("Text:", message_from_db.text)
 
-renamed_chat = chat_service.rename_chat(
-    chat = chat,
-    new_title="New title"
-)
-
-print("CHAT OBJECT ID:", chat.id)
-print("RENAMED OBJECT ID:", renamed_chat.id)
-print("RENAMED TITLE:", renamed_chat.title)
-
-saved_chat = db.get(ChatORM, renamed_chat.id)
-
-print("SAVED CHAT:", saved_chat)
-
-new_db = SessionLocal()
-
-saved_chat = new_db.get(ChatORM, chat.id)
-
-print("Fresh session title:", saved_chat.title)
-
-new_db.close()
+# Repository Not Found Contract
+missing_message = message_repo.get("does-not-exist")
+print("Missing message:", missing_message)
