@@ -34,5 +34,7 @@ class NoEmailChangeError(Exception):
 
 
 class ChatRenameError(Exception):
-    pass
+    def __init__(self, title: str):
+        self.title = title
+        super().__init__(f"Chat Rename Error: {title}")
 

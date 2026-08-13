@@ -1,7 +1,7 @@
 import uuid
 from datetime import datetime
 from database.database import SessionLocal
-from models import UserORM, ChatORM, MessageORM, Message
+from models import UserORM, ChatORM, MessageORM
 from repositories.chat_repository import ChatRepository
 from repositories.message_repository import MessageRepository
 from services.chat_service import ChatService

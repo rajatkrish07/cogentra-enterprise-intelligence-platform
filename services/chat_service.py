@@ -1,59 +1,62 @@
 import uuid
-from datetime import datetime
-from models import ChatORM, MessageORM
+from exceptions import DuplicateChatError, ChatRenameError
+from models import ChatORM
 from logger import logger
 from exceptions import ChatRenameError
 from repositories.chat_repository import ChatRepository
-from repositories.message_repository import MessageRepository
 
 class ChatService:
 
     def __init__(
             self,
-            chat_repo: ChatRepository,
-            message_repo: MessageRepository
+            chat_repository: ChatRepository
     ):
 
-        self.chat_repo = chat_repo
-        self.message_repo = message_repo
+        self.chat_repository = chat_repository
 
-# Adds New Message
-    def add_message(
-            self,
-            chat: ChatORM,
-            text: str
-    ) -> MessageORM:
+    # Finds Chat by ID
+    def find_chat(self, chat_id: str) -> ChatORM | None:
+        chat = self.chat_repository.get_chat(chat_id)
+        return chat
 
-        id = str(uuid.uuid4())
-        timestamp = datetime.now()
-        message = MessageORM(
-            chat_id=chat.id,
-            id=id,
-            timestamp=timestamp,
-            text=text
+    # Find chats by Title
+    def find_chat_by_title(self, title: str) -> ChatORM | None:
+        chat = self.chat_repository.get_chat_by_title(title)
+        return chat
+
+    # Creates new chat object
+    def create_chat(self, user_id: str, title: str) -> ChatORM:
+        # if self.find_chat_by_title(user, title):
+        existing_chat = self.chat_repository.get_chat_by_title(
+            user_id = user_id,
+            title = title
         )
-        self.message_repo.create(message)
-        logger.info(f"Message {id} added to chat .")
-        return message
 
-# Edit existing messages
-    def edit_message(self, message: MessageORM, new_text: str) -> MessageORM:
-        message.text = new_text
-        logger.info(f"Message {message.id} edited successfully!")
-        self.message_repo.update(message)
-        return message
+        if existing_chat:
+            raise DuplicateChatError("Chat title already exists.")
 
-# Rename chats
+        chat = ChatORM(
+            id = str(uuid.uuid4()),
+            user_id = user_id,
+            title=title
+        )
+
+        created_chat = self.chat_repository.create(chat)
+        logger.info(f"Created new chat: {chat.title}.")
+        return created_chat
+
+    # Delete chats
+    def delete_chat(self, chat: ChatORM) -> ChatORM:
+        deleted_chat = self.chat_repository.delete(chat)
+        logger.info(f"Chat '{chat.id}' deleted successfully.")
+        return deleted_chat
+
+    # Rename chats
     def rename_chat(self, chat: ChatORM, new_title: str) -> ChatORM:
         if chat.title == new_title:
             raise ChatRenameError("New title must be different from the current title.")
+
         chat.title = new_title
-        self.chat_repo.update(chat)
+        self.chat_repository.update(chat)
         logger.info(f"Chat renamed to '{chat.title}'.")
         return chat
-
-# Deletes messages
-    def delete_message(self, message: MessageORM) -> MessageORM:
-            self.message_repo.delete(message)
-            logger.info(f"Message {message.id} deleted successfully!")
-            return message

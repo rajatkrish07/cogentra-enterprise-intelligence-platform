@@ -1,5 +1,5 @@
 from fastapi import APIRouter
-from models import UserAccount
+from models import UserORM
 from schemas import AdminUserResponse
 
 admin_router = APIRouter(
@@ -9,5 +9,5 @@ admin_router = APIRouter(
 
 # Displays all info with admin rights
 @admin_router.get("/users", response_model=AdminUserResponse)
-def admin_display(user: UserAccount):
+def admin_display(user: UserORM):
     return user

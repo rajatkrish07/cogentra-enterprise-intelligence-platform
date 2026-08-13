@@ -1,4 +1,3 @@
-from datetime import datetime
 import time
 import uuid
 from starlette import status
@@ -6,10 +5,11 @@ from exceptions import UserNotFoundError, ChatNotFoundError, MessageNotFoundErro
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 from logger import logger
-from routers.users import user_router
+# from routers.users_router import user_router
 from routers.chats_router import chat_router
+from routers.messages_router import messages_router
 from routers.ai_response_router import ai_response_router
-from routers.admin import admin_router
+# from routers.admin import admin_router
 from routers.debug import debug_router
 from routers.health import health_router
 from contextlib import asynccontextmanager
@@ -27,10 +27,11 @@ app = FastAPI(
 )
 
 # Registering the routers with the app
-app.include_router(user_router)
+# app.include_router(user_router)
 app.include_router(chat_router)
+app.include_router(messages_router)
 app.include_router(ai_response_router)
-app.include_router(admin_router)
+# app.include_router(admin_router)
 app.include_router(debug_router)
 app.include_router(health_router)
 

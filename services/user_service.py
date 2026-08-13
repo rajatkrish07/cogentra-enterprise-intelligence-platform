@@ -1,56 +1,32 @@
-import uuid
-from models import UserAccount, Chat
+from models import UserORM
 from logger import logger
-from exceptions import DuplicateChatError, ChatNotFoundError, NoEmailChangeError
+from exceptions import NoEmailChangeError
 from pydantic import EmailStr
+from repositories.user_repository import UserRepository
 
 class UserService:
 
-    # Find chats
-    def find_chat(self, user: UserAccount, chat_id: str) -> Chat | None:
-        for my_chat in user.chats:
-            if my_chat.id == chat_id:
-                return my_chat
-        return None
+    def __init__(
+            self,
+            user_repository = UserRepository
+    ):
 
-    # Find chats by title
-    def find_chat_by_title(self, user: UserAccount, title: str) -> Chat | None:
-        for my_chat in user.chats:
-            if my_chat.title == title:
-                return my_chat
-        return None
+        self.user_repository = user_repository
 
-    # Creates new chat object
-    def create_chat(self, user: UserAccount, title: str) -> Chat:
-        if self.find_chat_by_title(user, title):
-            raise DuplicateChatError(f"Chat '{title}' already exists.")
-
-        chat = Chat(
-            id = str(uuid.uuid4()),
-            title=title
-        )
-
-        user.chats.append(chat)
-        logger.info(f"Created new chat: {chat.title}.")
-        return chat
-
-    # Delete chats
-    def delete_chat(self, user: UserAccount, chat_id: str) -> Chat:
-        chat = self.find_chat(user, chat_id)
-        if chat is None:
-            raise ChatNotFoundError(f"Chat '{chat_id}' not found.")
-
-        user.chats.remove(chat)
-        logger.info(f"Chat '{chat_id}' deleted successfully.")
-        return chat
+    # Creates user
+    def create_user(self, user: UserORM) -> UserORM:
+        created_user = self.user_repository.create_user(user)
+        logger.info(f"User {user.username} created successfully!.")
+        return created_user
 
     # Updates user email
-    def update_email(self, user: UserAccount, new_email: EmailStr)->UserAccount:
+    def update_email(self, user: UserORM, new_email: EmailStr)->UserORM:
         if user.email == new_email:
-            raise NoEmailChangeError
+            raise NoEmailChangeError()
 
         user.email = new_email
+        updated_email = self.user_repository.update_email(user, new_email)
         logger.info(f"Email updated successfully to {user.email}.")
-        return user
+        return updated_email
 
 
