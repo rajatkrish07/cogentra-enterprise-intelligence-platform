@@ -1,5 +1,6 @@
 from models import MessageORM
 from sqlalchemy import select
+from sqlalchemy.exc import IntegrityError
 
 class MessageRepository:
     def __init__(self, db):
@@ -12,8 +13,14 @@ class MessageRepository:
         return result
 
     def create(self, message: MessageORM):
-        self.db.add(message)
-        self.db.commit()
+        try:
+            self.db.add(message)
+            self.db.commit()
+
+        except IntegrityError:
+            self.db.rollback()
+            raise
+
         return message
 
     def update(self, message: MessageORM):

@@ -1,7 +1,5 @@
-from datetime import datetime
-# from schemas import CurrentUser
-from models import ChatORM, MessageORM
-from exceptions import ChatNotFoundError, MessageNotFoundError
+from models import ChatORM, MessageORM, UserORM
+from exceptions import ChatNotFoundError, MessageNotFoundError, UserNotFoundError
 from fastapi import Depends, Path
 from database.database import SessionLocal
 from repositories.user_repository import UserRepository
@@ -77,95 +75,25 @@ def get_ai_service(
 def get_api_version() -> str:
     return "v1"
 
-# # Validates Current User
-# def get_curr_user() -> CurrentUser:
-#     return CurrentUser(
-#         username="rajatkr_07",
-#         email="rajatkrishnan2002@gmail.com",
-#         chats=[
-#             ChatORM(
-#                 id="chat_001",
-#                 title="Python",
-#                 messages=[
-#                     MessageORM(
-#                         id="msg_001",
-#                         chat_id="chat_001",
-#                         timestamp=datetime.now(),
-#                         text="What is Python?",
-#                     ),
-#
-#                     MessageORM(
-#                         id="msg_002",
-#                         chat_id="chat_001",
-#                         timestamp=datetime.now(),
-#                         text="Explain OOP.",
-#                     )
-#                 ]
-#             ),
-#
-#             ChatORM(
-#                 id="chat_002",
-#                 title="FastAPI",
-#                 messages=[
-#
-#                     MessageORM(
-#                         id="msg_003",
-#                         chat_id="chat_002",
-#                         timestamp=datetime.now(),
-#                         text="What is Dependency Injection?",
-#                     ),
-#
-#                     MessageORM(
-#                         id="msg_004",
-#                         chat_id="chat_002",
-#                         timestamp=datetime.now(),
-#                         text="Explain Path Parameters.",
-#                     )
-#                 ]
-#             ),
-#
-#             ChatORM(
-#                 id="chat_003",
-#                  title="RAG",
-#                  messages=[
-#                      MessageORM(
-#                          id="msg_005",
-#                          chat_id="chat_003",
-#                          timestamp=datetime.now(),
-#                          text="What is Retrieval-Augmented Generation?"
-#                      ),
-#
-#                      MessageORM(
-#                          id="msg_006",
-#                          chat_id="chat_003",
-#                          timestamp=datetime.now(),
-#                          text="Explain Vector Databases."
-#                      )
-#                  ]
-#             ),
-#
-#             ChatORM(
-#                 id="chat_004",
-#                 title="Agents",
-#                 messages=[
-#
-#                      MessageORM(
-#                          id="msg_007",
-#                          chat_id="chat_004",
-#                          timestamp=datetime.now(),
-#                          text="What are AI Agents?"
-#                      ),
-#
-#                      MessageORM(
-#                          id="msg_008",
-#                          chat_id="chat_004",
-#                          timestamp=datetime.now(),
-#                          text="Explain Agentic Workflows.",
-#                      )
-#                  ]
-#             ),
-#         ]
-#     )
+# Gets user by id
+def get_user(
+        user_id: str = Path(
+            ...,
+            min_length=1,
+            title="User ID",
+            description="Unique identifier of the user",
+        ),
+        user_repository: UserRepository = Depends(get_user_repository)
+)-> UserORM:
+
+    # Asks User Repository to fetch result from DB
+    user = user_repository.get_user(user_id)
+
+    # Validation: If found then chat is returned, otherwise UserNotFound exception
+    if user is None:
+        raise UserNotFoundError()
+
+    return user
 
 # Gets chat by id
 def get_chat(
@@ -174,7 +102,6 @@ def get_chat(
             min_length=1,
             title="Chat ID",
             description="Unique identifier of the chat",
-            examples=["chat_001"]
         ),
         chat_repository: ChatRepository = Depends(get_chat_repository)
 
@@ -183,7 +110,7 @@ def get_chat(
     # Asks Chat Repository to fetch result from DB
     chat = chat_repository.get_chat(chat_id)
 
-    # Validation: If found then chat is returned, otherwise None
+    # Validation: If found then chat is returned, otherwise ChatNotFound exception
     if chat is None:
         raise ChatNotFoundError(chat_id)
     return chat
@@ -204,7 +131,7 @@ def get_message(
     # Asks Message Repository to fetch result from DB
     message = message_repository.get(message_id)
 
-    # Validation: If found then message is returned, otherwise None
+    # Validation: If found then message is returned, otherwise MessageNotFound exception
     if message is None:
         raise MessageNotFoundError(message_id)
     return message

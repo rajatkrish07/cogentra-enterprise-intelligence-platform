@@ -18,23 +18,26 @@ class MessageNotFoundError(Exception):
 
 class AIResponseNotFoundError(Exception):
     def __init__(self, ai_response_id: str):
-        self.message_id = ai_response_id
+        self.ai_response_id = ai_response_id
         super().__init__(f"AIResponse {ai_response_id} was not found.")
 
 class DuplicateChatError(Exception):
-    pass
+    def __init__(self, title: str):
+        self.chat_id = title
+        super().__init__(f"Chat with title {title} already exists.")
 
 class DuplicateEmailError(Exception):
-    pass
+    def __init__(self, email: EmailStr):
+        self.email = email
+        super().__init__(f"Email {email} already exists.")
 
 class NoEmailChangeError(Exception):
     def __init__(self, email: EmailStr):
         self.email = email
         super().__init__(f"New email can't be same as the current email.")
 
-
 class ChatRenameError(Exception):
-    def __init__(self, title: str):
-        self.title = title
-        super().__init__(f"Chat Rename Error: {title}")
+    def __init__(self, chat_id: str):
+        self.chat_id = chat_id
+        super().__init__(f"Chat {chat_id} already has this title.")
 

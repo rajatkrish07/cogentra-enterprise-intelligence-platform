@@ -54,9 +54,9 @@ class ChatService:
     # Rename chats
     def rename_chat(self, chat: ChatORM, new_title: str) -> ChatORM:
         if chat.title == new_title:
-            raise ChatRenameError("New title must be different from the current title.")
+            raise ChatRenameError(chat.id)
 
         chat.title = new_title
         self.chat_repository.update(chat)
-        logger.info(f"Chat renamed to '{chat.title}'.")
+        logger.info(f"Chat {chat.id} renamed to '{chat.title}'.")
         return chat

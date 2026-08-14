@@ -1,7 +1,8 @@
+import uuid
+
 from models import UserORM
 from logger import logger
 from exceptions import NoEmailChangeError
-from pydantic import EmailStr
 from repositories.user_repository import UserRepository
 
 class UserService:
@@ -15,12 +16,13 @@ class UserService:
 
     # Creates user
     def create_user(self, user: UserORM) -> UserORM:
+        user.id = str(uuid.uuid4())
         created_user = self.user_repository.create_user(user)
-        logger.info(f"User {user.username} created successfully!.")
+        logger.info(f"User {user.username} created successfully!")
         return created_user
 
     # Updates user email
-    def update_email(self, user: UserORM, new_email: EmailStr)->UserORM:
+    def update_email(self, user: UserORM, new_email: str)->UserORM:
         if user.email == new_email:
             raise NoEmailChangeError()
 

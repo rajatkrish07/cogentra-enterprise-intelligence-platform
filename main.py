@@ -1,11 +1,10 @@
 import time
 import uuid
 from starlette import status
-from exceptions import UserNotFoundError, ChatNotFoundError, MessageNotFoundError, AIResponseNotFoundError
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 from logger import logger
-# from routers.users_router import user_router
+from routers.users_router import user_router
 from routers.chats_router import chat_router
 from routers.messages_router import messages_router
 from routers.ai_response_router import ai_response_router
@@ -13,6 +12,16 @@ from routers.ai_response_router import ai_response_router
 from routers.debug import debug_router
 from routers.health import health_router
 from contextlib import asynccontextmanager
+from exceptions import (
+    UserNotFoundError,
+    ChatNotFoundError,
+    MessageNotFoundError,
+    AIResponseNotFoundError,
+    DuplicateEmailError,
+    DuplicateChatError,
+    NoEmailChangeError,
+    ChatRenameError
+)
 
 # App Startup-Shutdown
 @asynccontextmanager
@@ -27,7 +36,7 @@ app = FastAPI(
 )
 
 # Registering the routers with the app
-# app.include_router(user_router)
+app.include_router(user_router)
 app.include_router(chat_router)
 app.include_router(messages_router)
 app.include_router(ai_response_router)
@@ -166,3 +175,79 @@ async def handle_ai_response_not_found(
         error_code="AI_RESPONSE_NOT_FOUND",
         message=str(exc)
     )
+
+@app.exception_handler(DuplicateEmailError)
+async def handle_user_not_found(
+    request: Request,
+    exc: DuplicateEmailError
+):
+
+    logger.warning(str(exc))
+
+    return error_response(
+        request = request,
+        status_code=status.HTTP_409_CONFLICT,
+        error_code="DUPLICATE_EMAIL",
+        message=str(exc)
+    )
+
+@app.exception_handler(DuplicateEmailError)
+async def handle_user_not_found(
+    request: Request,
+    exc: DuplicateEmailError
+):
+
+    logger.warning(str(exc))
+
+    return error_response(
+        request = request,
+        status_code=status.HTTP_409_CONFLICT,
+        error_code="DUPLICATE_EMAIL",
+        message=str(exc)
+    )
+
+@app.exception_handler(DuplicateChatError)
+async def handle_user_not_found(
+    request: Request,
+    exc: DuplicateChatError
+):
+
+    logger.warning(str(exc))
+
+    return error_response(
+        request = request,
+        status_code=status.HTTP_409_CONFLICT,
+        error_code="DUPLICATE_CHAT",
+        message=str(exc)
+    )
+
+@app.exception_handler(NoEmailChangeError)
+async def handle_user_not_found(
+    request: Request,
+    exc: NoEmailChangeError
+):
+
+    logger.warning(str(exc))
+
+    return error_response(
+        request = request,
+        status_code=status.HTTP_400_BAD_REQUEST,
+        error_code="NO_EMAIL_CHANGE",
+        message=str(exc)
+    )
+
+@app.exception_handler(ChatRenameError)
+async def handle_user_not_found(
+    request: Request,
+    exc: ChatRenameError
+):
+
+    logger.warning(str(exc))
+
+    return error_response(
+        request = request,
+        status_code=status.HTTP_400_BAD_REQUEST,
+        error_code="CHAT_RENAME_ERROR",
+        message=str(exc)
+    )
+

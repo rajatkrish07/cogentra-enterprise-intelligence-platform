@@ -1,4 +1,5 @@
 from sqlalchemy import select
+from sqlalchemy.exc import IntegrityError
 from models import ChatORM
 
 class ChatRepository:
@@ -22,12 +23,19 @@ class ChatRepository:
         result = execute.scalars().first()
         return result
 
+    # Persists newly created chat
     def create(self, chat: ChatORM) -> ChatORM:
-        self.db.add(chat)
-        self.db.commit()
+        try:
+            self.db.add(chat)
+            self.db.commit()
+
+        except IntegrityError:
+            self.db.rollback()
+            raise
+
         return chat
 
-    # Renames/Updates chat title or name
+    # Persists updated email
     def update(self, chat: ChatORM) -> ChatORM:
         self.db.add(chat)
         self.db.commit()
