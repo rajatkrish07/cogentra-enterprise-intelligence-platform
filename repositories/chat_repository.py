@@ -1,6 +1,6 @@
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
-from models import ChatORM
+from models import UserORM, ChatORM
 
 class ChatRepository:
     def __init__(self, db):
@@ -16,7 +16,7 @@ class ChatRepository:
     # Fetches chat by title
     def get_chat_by_title(self, user_id: str, title: str) -> ChatORM | None:
         stmt = select(ChatORM).where(
-            ChatORM.id == user_id,
+            ChatORM.user_id == user_id,
             ChatORM.title == title
         )
         execute = self.db.execute(stmt)

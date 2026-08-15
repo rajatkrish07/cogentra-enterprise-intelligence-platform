@@ -18,6 +18,7 @@ from exceptions import (
     MessageNotFoundError,
     AIResponseNotFoundError,
     DuplicateEmailError,
+    DuplicateUsernameError,
     DuplicateChatError,
     NoEmailChangeError,
     ChatRenameError
@@ -115,7 +116,7 @@ async def global_exception_handler(
 
 # For No User Found
 @app.exception_handler(UserNotFoundError)
-async def handle_user_not_found(
+async def handle_user_not_found_error(
     request: Request,
     exc: UserNotFoundError
 ):
@@ -131,7 +132,7 @@ async def handle_user_not_found(
 
 # For No Chats Found
 @app.exception_handler(ChatNotFoundError)
-async def handle_chat_not_found(
+async def handle_chat_not_found_error(
     request: Request,
     exc: ChatNotFoundError
 ):
@@ -147,7 +148,7 @@ async def handle_chat_not_found(
 
 # For No Message Found
 @app.exception_handler(MessageNotFoundError)
-async def handle_message_not_found(
+async def handle_message_not_found_error(
     request: Request,
     exc: MessageNotFoundError
 ):
@@ -163,7 +164,7 @@ async def handle_message_not_found(
 
 # For No AI Response Found
 @app.exception_handler(AIResponseNotFoundError)
-async def handle_ai_response_not_found(
+async def handle_ai_response_not_found_error(
     request: Request,
     exc: AIResponseNotFoundError
 ):
@@ -177,7 +178,7 @@ async def handle_ai_response_not_found(
     )
 
 @app.exception_handler(DuplicateEmailError)
-async def handle_user_not_found(
+async def handle_duplicate_email_error(
     request: Request,
     exc: DuplicateEmailError
 ):
@@ -191,10 +192,10 @@ async def handle_user_not_found(
         message=str(exc)
     )
 
-@app.exception_handler(DuplicateEmailError)
-async def handle_user_not_found(
+@app.exception_handler(DuplicateUsernameError)
+async def handle_duplicate_username_error(
     request: Request,
-    exc: DuplicateEmailError
+    exc: DuplicateUsernameError
 ):
 
     logger.warning(str(exc))
@@ -202,12 +203,12 @@ async def handle_user_not_found(
     return error_response(
         request = request,
         status_code=status.HTTP_409_CONFLICT,
-        error_code="DUPLICATE_EMAIL",
+        error_code="DUPLICATE_USERNAME",
         message=str(exc)
     )
 
 @app.exception_handler(DuplicateChatError)
-async def handle_user_not_found(
+async def handle_duplicate_chat_error(
     request: Request,
     exc: DuplicateChatError
 ):
@@ -222,7 +223,7 @@ async def handle_user_not_found(
     )
 
 @app.exception_handler(NoEmailChangeError)
-async def handle_user_not_found(
+async def handle_no_email_change_error(
     request: Request,
     exc: NoEmailChangeError
 ):
@@ -237,7 +238,7 @@ async def handle_user_not_found(
     )
 
 @app.exception_handler(ChatRenameError)
-async def handle_user_not_found(
+async def handle_chat_rename_error(
     request: Request,
     exc: ChatRenameError
 ):

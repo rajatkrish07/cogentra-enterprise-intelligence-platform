@@ -25,6 +25,20 @@ class UserRepository:
         result = execute.scalars().first()
         return result
 
+    # Fetches user by email
+    def get_by_email(self, email: str) -> UserORM | None:
+        stmt = select(UserORM).where(UserORM.email == email)
+        execute = self.db.execute(stmt)
+        result = execute.scalars().first()
+        return result
+
+    # Fetches user by username
+    def get_by_username(self, username: str) -> UserORM | None:
+        stmt = select(UserORM).where(UserORM.username == username)
+        execute = self.db.execute(stmt)
+        result = execute.scalars().first()
+        return result
+
     # Updates user email
     def update_email(self, user: UserORM, new_email: str)->UserORM:
         self.db.add(user)

@@ -1,8 +1,7 @@
 import uuid
-
 from models import UserORM
 from logger import logger
-from exceptions import NoEmailChangeError
+from exceptions import NoEmailChangeError, DuplicateUsernameError
 from repositories.user_repository import UserRepository
 
 class UserService:
@@ -16,6 +15,13 @@ class UserService:
 
     # Creates user
     def create_user(self, user: UserORM) -> UserORM:
+
+        if self.user_repository.get_by_email(user.email):
+            raise DuplicateEmailError(user.email)
+
+        if self.user_repository.get_by_username(user.username):
+            raise DuplicateUsernameError(user.username)
+
         user.id = str(uuid.uuid4())
         created_user = self.user_repository.create_user(user)
         logger.info(f"User {user.username} created successfully!")

@@ -1,9 +1,12 @@
 import uuid
-from exceptions import DuplicateChatError, ChatRenameError
 from models import ChatORM
 from logger import logger
-from exceptions import ChatRenameError
 from repositories.chat_repository import ChatRepository
+from exceptions import(
+DuplicateChatError,
+ChatNotFoundError,
+ChatRenameError
+)
 
 class ChatService:
 
@@ -15,18 +18,19 @@ class ChatService:
         self.chat_repository = chat_repository
 
     # Finds Chat by ID
-    def find_chat(self, chat_id: str) -> ChatORM | None:
+    def find_chat(self, chat_id: str) -> ChatORM:
         chat = self.chat_repository.get_chat(chat_id)
-        return chat
+        if chat:
+            return chat
+        raise ChatNotFoundError(chat_id)
 
     # Find chats by Title
-    def find_chat_by_title(self, title: str) -> ChatORM | None:
-        chat = self.chat_repository.get_chat_by_title(title)
+    def find_chat_by_title(self, user_id: str, title: str) -> ChatORM | None:
+        chat = self.chat_repository.get_chat_by_title(user_id, title)
         return chat
 
     # Creates new chat object
     def create_chat(self, user_id: str, title: str) -> ChatORM:
-        # if self.find_chat_by_title(user, title):
         existing_chat = self.chat_repository.get_chat_by_title(
             user_id = user_id,
             title = title

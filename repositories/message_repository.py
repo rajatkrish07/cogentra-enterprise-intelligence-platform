@@ -12,6 +12,12 @@ class MessageRepository:
         result = execute.scalars().first()
         return result
 
+    def get_by_chat_id(self, chat_id: str) -> MessageORM | None:
+        stmt = select(MessageORM).where(MessageORM.chat_id == chat_id)
+        execute = self.db.execute(stmt)
+        result = execute.scalars().first()
+        return result
+
     def create(self, message: MessageORM):
         try:
             self.db.add(message)
