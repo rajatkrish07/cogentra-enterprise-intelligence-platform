@@ -7,7 +7,7 @@ class AIResponseRepository:
     def __init__(self, db):
         self.db = db
 
-    # Persists the ai generated response
+    # Persists the AI generated response
     def create(self, response: AIResponseORM):
         try:
             self.db.add(response)

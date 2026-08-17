@@ -14,23 +14,38 @@ class ChatService:
             self,
             chat_repository: ChatRepository
     ):
-
         self.chat_repository = chat_repository
 
     # Finds Chat by ID
-    def find_chat(self, chat_id: str) -> ChatORM:
+    def find_chat(
+            self,
+            chat_id: str
+    ) -> ChatORM:
+
         chat = self.chat_repository.get_chat(chat_id)
+
         if chat:
             return chat
+
         raise ChatNotFoundError(chat_id)
 
     # Find chats by Title
-    def find_chat_by_title(self, user_id: str, title: str) -> ChatORM | None:
+    def find_chat_by_title(
+            self,
+            user_id: str,
+            title: str
+    ) -> ChatORM | None:
+
         chat = self.chat_repository.get_chat_by_title(user_id, title)
         return chat
 
     # Creates new chat object
-    def create_chat(self, user_id: str, title: str) -> ChatORM:
+    def create_chat(
+            self,
+            user_id: str,
+            title: str
+    ) -> ChatORM:
+
         existing_chat = self.chat_repository.get_chat_by_title(
             user_id = user_id,
             title = title
@@ -50,13 +65,22 @@ class ChatService:
         return created_chat
 
     # Delete chats
-    def delete_chat(self, chat: ChatORM) -> ChatORM:
+    def delete_chat(
+            self,
+            chat: ChatORM
+    ) -> ChatORM:
+
         deleted_chat = self.chat_repository.delete(chat)
         logger.info(f"Chat '{chat.id}' deleted successfully.")
         return deleted_chat
 
     # Rename chats
-    def rename_chat(self, chat: ChatORM, new_title: str) -> ChatORM:
+    def rename_chat(
+            self,
+            chat: ChatORM,
+            new_title: str
+    ) -> ChatORM:
+
         if chat.title == new_title:
             raise ChatRenameError(chat.id)
 

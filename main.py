@@ -9,7 +9,7 @@ from routers.chats_router import chat_router
 from routers.messages_router import messages_router
 from routers.ai_response_router import ai_response_router
 # from routers.admin import admin_router
-from routers.debug import debug_router
+from debug import debug_router
 from routers.health import health_router
 from contextlib import asynccontextmanager
 from exceptions import (

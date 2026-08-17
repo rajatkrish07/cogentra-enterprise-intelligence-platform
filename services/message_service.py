@@ -1,5 +1,6 @@
 from datetime import datetime
 import uuid
+from exceptions import MessageNotFoundError
 from logger import logger
 from models import ChatORM, MessageORM
 from repositories.message_repository import MessageRepository
@@ -11,6 +12,19 @@ class MessageService:
     ):
         self.message_repository = message_repository
 
+#   Fetches message
+    def get_message(
+            self,
+            message_id: str,
+            ) -> MessageORM:
+
+        message = self.message_repository.get(message_id)
+
+        if message is None:
+            raise MessageNotFoundError(message_id)
+
+        return message
+
 # Adds New Message
     def add_message(
             self,
@@ -21,8 +35,8 @@ class MessageService:
         id = str(uuid.uuid4())
         timestamp = datetime.now()
         message = MessageORM(
-            chat_id=chat.id,
             id=id,
+            chat_id=chat.id,
             timestamp=timestamp,
             text=text
         )

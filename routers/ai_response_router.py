@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends
-from dependencies import get_api_version, get_ai_service
+from dependencies import get_api_version, get_ai_service, get_message
+from models import MessageORM
 from schemas import GenerateAIResponse, RegenerateAIResponse, ResponseHistorySchema
 from starlette import status
 from services.ai_response_service import AIService
@@ -13,10 +14,11 @@ ai_response_router = APIRouter(
 @ai_response_router.post("/generate", response_model=GenerateAIResponse, status_code=status.HTTP_201_CREATED)
 def generate_response(
     version: str = Depends(get_api_version),
-    ai_service: AIService = Depends(get_ai_service)
+    ai_service: AIService = Depends(get_ai_service),
+    message: MessageORM = Depends(get_message),
 ):
 
-    response = ai_service.generate_response()
+    response = ai_service.generate_response(message)
 
     return {
         "ai_response": response.text,
@@ -26,9 +28,10 @@ def generate_response(
 # Regenerates the response and adds it to a list for persistence
 @ai_response_router.post("/regenerate",response_model=RegenerateAIResponse, status_code=status.HTTP_201_CREATED)
 def regenerate_response(
-        ai_service: AIService = Depends(get_ai_service)
+        ai_service: AIService = Depends(get_ai_service),
+        message: MessageORM = Depends(get_message),
 ):
-    new_response = ai_service.regenerate_response()
+    new_response = ai_service.regenerate_response(message)
 
     return {
         "message": "AI response regenerated successfully.",

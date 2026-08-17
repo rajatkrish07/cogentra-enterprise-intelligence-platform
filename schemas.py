@@ -58,20 +58,20 @@ class UserRegistrationRequest(BaseModel):
 class CreateChatRequest(BaseModel):
     title: str
 
-class ChatResponse(BaseModel):
+class ChatResponseDetail(BaseModel):
     id: str
     title: str
 
 class CreateChatResponse(BaseModel):
     message: str
-    chat: ChatResponse
+    detail: ChatResponseDetail
 
 class DeleteChatRequest(BaseModel):
     id: str
 
 class DeleteChatResponse(BaseModel):
     message: str
-    chat: ChatResponse
+    chat: ChatResponseDetail
 
 class UpdateEmailRequest(BaseModel):
     new_email: EmailStr
