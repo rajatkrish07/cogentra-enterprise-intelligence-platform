@@ -11,7 +11,7 @@ chat_router = APIRouter(
     tags=["chats"]
 )
 
-@chat_router.post("/chats", response_model=CreateChatResponse, status_code=status.HTTP_201_CREATED)
+@chat_router.post("", response_model=CreateChatResponse, status_code=status.HTTP_201_CREATED)
 def create_chat(
         request: CreateChatRequest,
         user_id: str,

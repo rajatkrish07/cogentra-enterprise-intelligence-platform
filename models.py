@@ -1,6 +1,6 @@
 from __future__ import annotations
 from datetime import datetime
-from sqlalchemy import DateTime, String, ForeignKey
+from sqlalchemy import DateTime, String, ForeignKey, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from database.database import Base, engine
 
@@ -35,6 +35,15 @@ class UserORM(Base):
 # Chat ORM Model
 class ChatORM(Base):
     __tablename__ = "chats_orm"
+
+    __table_args__ = (
+        UniqueConstraint(
+            "user_id",
+            "title",
+            name = "uq_chat_user_title"
+        ),
+    )
+
     id: Mapped[str] = mapped_column(
         String,
         primary_key=True
@@ -89,6 +98,4 @@ class AIResponseORM(Base):
         DateTime,
         nullable=False
     )
-
-Base.metadata.create_all(bind=engine)
 

@@ -2,6 +2,7 @@ import uuid
 from models import ChatORM
 from logger import logger
 from repositories.chat_repository import ChatRepository
+from sqlalchemy.exc import IntegrityError
 from exceptions import(
 DuplicateChatError,
 ChatNotFoundError,
@@ -60,9 +61,17 @@ class ChatService:
             title=title
         )
 
-        created_chat = self.chat_repository.create(chat)
-        logger.info(f"Created new chat: {chat.title}.")
-        return created_chat
+        try:
+            created_chat = self.chat_repository.create(chat)
+            logger.info(f"Created new chat: {chat.title}.")
+            return created_chat
+
+        except IntegrityError as exc:
+            error_message = str(exc.orig)
+
+            if "chats_orm.user_id" in error_message or "chats_orm.title" in error_message:
+                raise DuplicateChatError("Chat title already exists.")
+            raise
 
     # Delete chats
     def delete_chat(

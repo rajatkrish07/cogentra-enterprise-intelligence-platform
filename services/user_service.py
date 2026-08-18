@@ -1,7 +1,7 @@
 import uuid
 from models import UserORM
 from logger import logger
-from exceptions import NoEmailChangeError, DuplicateUsernameError, DuplicateEmailError
+from exceptions import NoEmailChangeError, DuplicateUsernameError, DuplicateEmailError, UserNotFoundError
 from repositories.user_repository import UserRepository
 from sqlalchemy.exc import IntegrityError
 
@@ -21,9 +21,6 @@ class UserService:
     )->UserORM:
 
         existing_user = self.user_repository.get_user(user_id)
-
-        print("USERNAME:", user.username)
-        print("EXISTING USER:", existing_username)
 
         if existing_user:
             return existing_user
