@@ -8,7 +8,6 @@ from routers.users_router import user_router
 from routers.chats_router import chat_router
 from routers.messages_router import messages_router
 from routers.ai_response_router import ai_response_router
-# from routers.admin import admin_router
 from debug import debug_router
 from routers.health import health_router
 from contextlib import asynccontextmanager
@@ -41,7 +40,6 @@ app.include_router(user_router)
 app.include_router(chat_router)
 app.include_router(messages_router)
 app.include_router(ai_response_router)
-# app.include_router(admin_router)
 app.include_router(debug_router)
 app.include_router(health_router)
 

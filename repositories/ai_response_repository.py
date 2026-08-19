@@ -33,3 +33,17 @@ class AIResponseRepository:
         execute = self.db.execute(stmt)
         result = execute.scalars().one()
         return result
+
+    # Fetches response by id
+    def get_by_message_id(
+            self,
+            message_id: str
+    ) -> list[AIResponseORM]:
+
+        stmt = select(AIResponseORM).where(
+            AIResponseORM.message_id == message_id
+        ).order_by(AIResponseORM.created_at.desc())
+
+        execute = self.db.execute(stmt)
+        result = execute.scalars().all()
+        return result

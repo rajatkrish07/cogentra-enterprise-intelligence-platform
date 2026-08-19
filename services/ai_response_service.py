@@ -5,7 +5,10 @@ from repositories.ai_response_repository import AIResponseRepository
 
 class AIService:
 
-    def __init__(self, ai_response_repository: AIResponseRepository):
+    def __init__(
+            self,
+            ai_response_repository: AIResponseRepository
+    ):
         self.ai_response_repository = ai_response_repository
 
 # Generates response
@@ -43,7 +46,10 @@ class AIService:
 # Returns response history
     def response_history(
             self,
+            message: MessageORM
     )->list[AIResponseORM]:
 
-        return self.ai_response_repository.get_all()
+        return self.ai_response_repository.get_by_message_id(
+            message.id
+        )
 

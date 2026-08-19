@@ -15,10 +15,14 @@ class UserResponse(BaseModel):
     message: str
     detail: UserResponseDetail
 
-class AdminUserResponse(BaseModel):
+class AdminUserResponseDetail(BaseModel):
     username: str
     email: EmailStr
     chat_count: int
+
+class AdminUserResponse(BaseModel):
+    message: str
+    detail: AdminUserResponseDetail
 
 class AIUserResponse(BaseModel):
     username: str
@@ -83,6 +87,17 @@ class UpdateEmailDetail(BaseModel):
 class UpdateEmailResponse(BaseModel):
     message: str
     detail: UpdateEmailDetail
+
+class GetMessageRequest(BaseModel):
+    message_id: str
+
+class GetMessageRespDetail(BaseModel):
+    message_id: str
+    text: str
+
+class GetMessageResponse(BaseModel):
+    message: str
+    detail: GetMessageRespDetail
 
 class AddMessageRequest(BaseModel):
     text: str

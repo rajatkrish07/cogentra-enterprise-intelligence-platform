@@ -1,8 +1,9 @@
 from starlette import status
 from models import ChatORM, MessageORM
-from schemas import AddMessageRequest, EditMessageRequest, AddMessageResponse, EditMessageResponse, EditMsgResponse, AddMsgResponse, DeleteMessageResponse, DeleteMessageDetail
+from schemas import AddMessageRequest, EditMessageRequest, AddMessageResponse, EditMessageResponse, EditMsgResponse, AddMsgResponse, DeleteMessageResponse, DeleteMessageDetail, GetMessageResponse, GetMessageRespDetail
 from dependencies import get_chat, get_message, get_message_service
 from fastapi import APIRouter, Path, Depends
+from services import message_service
 from services.message_service import MessageService
 
 # Message Router
@@ -11,9 +12,26 @@ messages_router = APIRouter(
     tags=["messages"]
 )
 
+@messages_router.get("/{message_id}", response_model=GetMessageResponse, status_code=status.HTTP_200_OK)
+def retrieve_message(
+        message: MessageORM = Depends(get_message)
+)-> GetMessageResponse:
+
+    msg = message_service.get_message(
+        message = message
+    )
+
+    return GetMessageResponse(
+        message = "Message retrieved successfully!",
+        detail = GetMessageRespDetail(
+            message_id = msg.id,
+            text = msg.text
+        )
+    )
+
 # Create message endpoint
 @messages_router.post("/{chat_id}/messages", response_model=AddMessageResponse, status_code=status.HTTP_201_CREATED)
-def add_message(
+def create(
     request: AddMessageRequest,
     chat_id: str = Path(
             ...,

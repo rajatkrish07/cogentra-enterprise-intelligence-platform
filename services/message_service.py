@@ -26,7 +26,7 @@ class MessageService:
         return message
 
 # Adds New Message
-    def add_message(
+    def create_message(
             self,
             chat: ChatORM,
             text: str
@@ -40,8 +40,9 @@ class MessageService:
             timestamp=timestamp,
             text=text
         )
+
         self.message_repository.create(message)
-        logger.info(f"Message {id} added to chat {chat.id} successfully! .")
+        logger.info(f"Message {id} added to chat {chat.id} successfully!")
         return message
 
 # Edit existing messages
